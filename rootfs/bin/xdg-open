@@ -4,12 +4,26 @@ if [ -z "$URL" ]; then
     shift
     URL="$*"
 fi
-REQ="${TMPDIR:-/data/local/tmp}/open_url_request"
-echo "$URL" > "$REQ"
+[ -z "$URL" ] && exit 0
+
+echo "$URL" > "${TMPDIR:-/data/local/tmp}/open_url_request" 2>/dev/null
+echo "$URL" > "/data/data/com.antigravity.standalone/cache/open_url_request" 2>/dev/null
+echo "$URL" > "/data/data/com.antigravity.standalone/files/open_url_request" 2>/dev/null
+echo "$URL" > "/data/data/com.antigravity.standalone/open_url_request" 2>/dev/null
+echo "$URL" > "/data/local/tmp/open_url_request" 2>/dev/null
+echo "$URL" > "/sdcard/open_url_request" 2>/dev/null
+chmod 666 /data/local/tmp/open_url_request 2>/dev/null
+chmod 666 /sdcard/open_url_request 2>/dev/null
+
+am start -a android.intent.action.VIEW -d "$URL" 2>/dev/null
+
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15; do
-    if [ ! -f "$REQ" ]; then
+    if [ ! -f "${TMPDIR:-/data/local/tmp}/open_url_request" ] && \
+       [ ! -f "/data/data/com.antigravity.standalone/cache/open_url_request" ] && \
+       [ ! -f "/data/local/tmp/open_url_request" ]; then
         exit 0
     fi
     sleep 0.2 2>/dev/null || sleep 1
 done
 exit 0
+
