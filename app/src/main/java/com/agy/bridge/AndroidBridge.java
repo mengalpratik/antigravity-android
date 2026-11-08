@@ -4,6 +4,7 @@ import android.content.Context;
 import android.webkit.JavascriptInterface;
 
 import com.agy.runtime.RuntimeManager;
+import com.agy.shell.RootBridge;
 import com.agy.shell.ShizukuBridge;
 import com.agy.theme.ThemeManager;
 import com.agy.ui.MainActivity;
@@ -23,16 +24,23 @@ public final class AndroidBridge {
     private final UiBridge ui = new UiBridge();
     private final ThemeBridge themeBridge;
     private final EngineBridge engine;
+    private final RootBridge rootBridge;
     private final EngineConfigJson config;
     private final String blobBridgeToken = createBlobBridgeToken();
     private volatile WeakReference<MainActivity> activityRef;
 
     public AndroidBridge(Context context, RuntimeManager runtime,
                          ShizukuBridge shizuku, ThemeManager theme) {
+        this(context, runtime, shizuku, theme, new RootBridge(context));
+    }
+
+    public AndroidBridge(Context context, RuntimeManager runtime,
+                         ShizukuBridge shizuku, ThemeManager theme, RootBridge root) {
         Context appContext = context.getApplicationContext();
         this.themeBridge = new ThemeBridge(theme);
         this.engine = new EngineBridge(runtime);
-        this.config = new EngineConfigJson(appContext, runtime, engine, shizuku, themeBridge);
+        this.rootBridge = root != null ? root : new RootBridge(appContext);
+        this.config = new EngineConfigJson(appContext, runtime, engine, shizuku, themeBridge, this.rootBridge);
     }
 
     /** Host activity, used to dismiss the native splash once the UI has painted. */
@@ -96,6 +104,26 @@ public final class AndroidBridge {
     @JavascriptInterface
     public void setDesktopMode(boolean enabled) {
         ui.setDesktopMode(enabled);
+    }
+
+    @JavascriptInterface
+    public boolean isRootActive() {
+        return rootBridge.isRootActive();
+    }
+
+    @JavascriptInterface
+    public boolean isRootAvailable() {
+        return rootBridge.isAvailable();
+    }
+
+    @JavascriptInterface
+    public String getRootProvider() {
+        return rootBridge.getRootProvider();
+    }
+
+    @JavascriptInterface
+    public String getRootStatusJson() {
+        return rootBridge.getStatusJson().toString();
     }
 
     // Native-only helpers used while preparing the trusted app document.

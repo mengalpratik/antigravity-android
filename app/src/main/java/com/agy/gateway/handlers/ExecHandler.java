@@ -8,6 +8,8 @@ import com.agy.log.CommandHistory;
 import com.agy.log.CommandRecord;
 import com.agy.log.LogRingBuffer;
 
+import com.agy.shell.RootBridge;
+
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -20,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Handles command execution requests with detailed telemetry, outputs, and exit codes.
+ * Supports standard shell (/system/bin/sh), Shizuku (rish), and native Root (su).
  */
 public final class ExecHandler {
 
@@ -27,11 +30,13 @@ public final class ExecHandler {
     private final Context context;
     private final CommandHistory history;
     private final LogRingBuffer logBuffer;
+    private final RootBridge rootBridge;
 
     public ExecHandler(Context context, CommandHistory history, LogRingBuffer logBuffer) {
         this.context = context.getApplicationContext();
         this.history = history;
         this.logBuffer = logBuffer;
+        this.rootBridge = new RootBridge(context);
     }
 
     public JSONObject handle(JSONObject payload) {
@@ -39,6 +44,8 @@ public final class ExecHandler {
         String source = payload.optString("source", "agent");
         long timeoutMs = payload.optLong("timeout_ms", 30000);
         boolean useRish = payload.optBoolean("rish", false);
+        boolean useRoot = payload.optBoolean("root", false);
+        boolean autoElevate = payload.optBoolean("auto_elevate", false);
         String cwdPath = payload.optString("cwd", context.getFilesDir().getAbsolutePath());
 
         String cmdId = "cmd_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0, 4);
@@ -66,10 +73,23 @@ public final class ExecHandler {
         StringBuilder stderrBuf = new StringBuilder();
         String status = "ERROR";
 
+        String executionTier = "shell";
         try {
             ProcessBuilder pb;
-            if (useRish) {
-                pb = new ProcessBuilder(resolveRishPath(), "-c", cmd);
+            if (useRoot || (autoElevate && rootBridge.isRootActive())) {
+                pb = new ProcessBuilder(rootBridge.getSuPath(), "-c", cmd);
+                executionTier = "root";
+            } else if (useRish) {
+                File rish = new File(resolveRishPath());
+                if (rish.exists() && rish.canExecute()) {
+                    pb = new ProcessBuilder(rish.getAbsolutePath(), "-c", cmd);
+                    executionTier = "rish";
+                } else if (rootBridge.isRootActive()) {
+                    pb = new ProcessBuilder(rootBridge.getSuPath(), "-c", cmd);
+                    executionTier = "root_fallback";
+                } else {
+                    pb = new ProcessBuilder("/system/bin/sh", "-c", cmd);
+                }
             } else {
                 pb = new ProcessBuilder("/system/bin/sh", "-c", cmd);
             }
@@ -133,6 +153,7 @@ public final class ExecHandler {
         JSONObject resp = record.toJson();
         try {
             resp.put("ok", "SUCCESS".equals(status));
+            resp.put("tier", executionTier);
         } catch (Exception ignored) {}
         return resp;
     }

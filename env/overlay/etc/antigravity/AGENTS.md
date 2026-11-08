@@ -15,7 +15,7 @@
   - Linux Userspace Prefix (`$PREFIX`): `$HOME/usr` (`/data/user/0/com.agy/files/usr`).
   - Binary Directory: `$PREFIX/bin`.
   - Runtime Internals: `$HOME/runtime/bin`.
-  - External / Shared Storage: `/storage/emulated/0` (Projects typically reside in `/storage/emulated/0/Documents/`).
+  - External / Shared Storage: `/storage/emulated/0` (Projects reside in `/storage/emulated/0/Projects/`).
   - AI State & Config: `$HOME/.gemini/config/`.
   - Conversation Brain & Artifacts: `$HOME/.gemini/antigravity-app/brain/<conversation-id>/`.
 
@@ -80,11 +80,24 @@ AGY includes an ultra-fast, native package manager (`pkg`) written in Bash & AWK
 
 ---
 
-## 4. Elevated Operations via Shizuku (`rish`)
+## 4. Elevated Operations: Native Root (`su`) & Shizuku (`rish`)
 
-The agent has native access to Shizuku's elevated ADB shell (`uid=2000(shell)`):
+Antigravity features native out-of-the-box support for both superuser Root (`uid=0(root)`) and Shizuku ADB shell (`uid=2000(shell)`):
+
+### 4.1. Built-in Native Root Access (`su`)
+- **Root Capability:** When running on a rooted device (KernelSU, Magisk, APatch, SuperSU), root is automatically detected and ready without manual configuration.
+- **Execution:** Execute privileged root commands directly using `su -c "<command>"`.
+- **Examples:**
+  ```bash
+  su -c "id"
+  su -c "ls -la /data/data"
+  su -c "pm install -r /storage/emulated/0/Projects/.../app.apk"
+  su -c "setprop persist.sys.example 1"
+  ```
+
+### 4.2. Elevated Operations via Shizuku (`rish`)
 - **Executable Location:** `$PREFIX/bin/rish` (invoked via `rish -c "<command>"`).
-- **Service Dependency:** Requires the Shizuku service to be running on the device. If `rish` reports `Server is not running`, ask the user to start Shizuku.
+- **Service Dependency:** Requires the Shizuku service to be running on non-rooted devices. If `rish` reports `Server is not running`, ask the user to start Shizuku.
 - **Common Elevated Operations:**
   1. **Restricted Filesystem Access:** Access files in protected directories (e.g. `/storage/emulated/0/Android/data`):
      ```bash

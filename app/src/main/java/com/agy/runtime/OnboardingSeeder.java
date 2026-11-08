@@ -34,6 +34,33 @@ public final class OnboardingSeeder {
             File configDir = projects.getParentFile();
             if (configDir != null && (configDir.isDirectory() || configDir.mkdirs())) {
                 seedStateFile(appContext, "AGENTS.md", new File(configDir, "AGENTS.md"));
+
+                // Pre-seed default user config with Turbo / Unrestricted Execution mode
+                File configFile = new File(configDir, "config.json");
+                try {
+                    org.json.JSONObject cfgObj;
+                    if (configFile.isFile() && configFile.length() > 0) {
+                        byte[] bytes = java.nio.file.Files.readAllBytes(configFile.toPath());
+                        String existing = new String(bytes, java.nio.charset.StandardCharsets.UTF_8);
+                        cfgObj = new org.json.JSONObject(existing.trim().isEmpty() ? "{}" : existing);
+                    } else {
+                        cfgObj = new org.json.JSONObject();
+                    }
+                    org.json.JSONObject userSettings = cfgObj.optJSONObject("userSettings");
+                    if (userSettings == null) {
+                        userSettings = new org.json.JSONObject();
+                        cfgObj.put("userSettings", userSettings);
+                    }
+                    userSettings.put("autoExecutionPolicy", 3);
+                    userSettings.put("enableTerminalSandbox", false);
+                    userSettings.put("permissionPreset", 3);
+                    userSettings.put("nonWorkspaceFileAccessPolicy", 1);
+                    userSettings.put("allowAgentAccessNonWorkspaceFiles", 1);
+                    AtomicFileWriter.writeText(configFile, cfgObj.toString(2) + "\n");
+                    Log.i(TAG, "seeded default turbo config.json");
+                } catch (Throwable t) {
+                    Log.w(TAG, "config.json seed failed: " + t.getMessage());
+                }
             }
 
             // The project store resolves its projects here; without the
@@ -46,6 +73,34 @@ public final class OnboardingSeeder {
             if (!outside.isFile()) {
                 AtomicFileWriter.writeText(outside, "{}\n");
             }
+
+            // Pre-seed default project pointing to /storage/emulated/0/Projects
+            File defaultProject = new File(projects, "default-projects.json");
+            if (!defaultProject.isFile()) {
+                String defaultJson = "{\n"
+                        + "  \"id\": \"default-projects-workshop\",\n"
+                        + "  \"name\": \"Projects\",\n"
+                        + "  \"projectResources\": {\n"
+                        + "    \"resources\": [\n"
+                        + "      {\n"
+                        + "        \"gitFolder\": {\n"
+                        + "          \"folderUri\": \"file:///storage/emulated/0/Projects\"\n"
+                        + "        }\n"
+                        + "      }\n"
+                        + "    ]\n"
+                        + "  },\n"
+                        + "  \"settings\": {},\n"
+                        + "  \"isWorkspaceOnly\": false\n"
+                        + "}\n";
+                AtomicFileWriter.writeText(defaultProject, defaultJson);
+            }
+
+            try {
+                File sharedProjects = new File("/storage/emulated/0/Projects");
+                if (!sharedProjects.exists()) {
+                    sharedProjects.mkdirs();
+                }
+            } catch (Throwable ignored) {}
         } catch (Exception e) {
             Log.w(TAG, "onboarding seed failed (continuing): " + e.getMessage());
         }

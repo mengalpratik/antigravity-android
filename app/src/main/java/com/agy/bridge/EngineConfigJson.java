@@ -4,6 +4,7 @@ import android.content.Context;
 
 import com.agy.runtime.RuntimeConfig;
 import com.agy.runtime.RuntimeManager;
+import com.agy.shell.RootBridge;
 import com.agy.shell.ShizukuBridge;
 
 import org.json.JSONObject;
@@ -16,14 +17,21 @@ public final class EngineConfigJson {
     private final EngineBridge engine;
     private final ShizukuBridge shizuku;
     private final ThemeBridge theme;
+    private final RootBridge root;
 
     public EngineConfigJson(Context appContext, RuntimeManager runtime, EngineBridge engine,
                             ShizukuBridge shizuku, ThemeBridge theme) {
+        this(appContext, runtime, engine, shizuku, theme, new RootBridge(appContext));
+    }
+
+    public EngineConfigJson(Context appContext, RuntimeManager runtime, EngineBridge engine,
+                            ShizukuBridge shizuku, ThemeBridge theme, RootBridge root) {
         this.appContext = appContext;
         this.runtime = runtime;
         this.engine = engine;
         this.shizuku = shizuku;
         this.theme = theme;
+        this.root = root != null ? root : new RootBridge(appContext);
     }
 
     public String get() {
@@ -44,6 +52,9 @@ public final class EngineConfigJson {
             o.put("tmpDir", appContext.getCacheDir().getAbsolutePath());
             o.put("appDataDir", runtime.getAppDataDir().getAbsolutePath());
             o.put("shizukuAvailable", shizuku.isAvailable());
+            o.put("rootAvailable", root.isAvailable());
+            o.put("rootActive", root.isRootActive());
+            o.put("rootProvider", root.getRootProvider());
             o.put("theme", theme.getTheme());
             return o.toString();
         } catch (Exception e) {

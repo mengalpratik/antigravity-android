@@ -15,11 +15,13 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.content.ActivityNotFoundException;
 import android.content.ClipData;
+import android.provider.DocumentsContract;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.widget.FrameLayout;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +31,7 @@ import com.agy.core.CoreServiceLauncher;
 import com.agy.oauth.OAuthManager;
 import com.agy.oauth.OAuthTokenStore;
 import com.agy.runtime.RuntimeManager;
+import com.agy.shell.RootBridge;
 import com.agy.shell.ShizukuBridge;
 import com.agy.theme.ThemeManager;
 import com.agy.ui.lifecycle.AppLifecycle;
@@ -64,6 +67,7 @@ public class MainActivity extends Activity
     private OAuthManager oauthManager;
     private RuntimeManager runtimeManager;
     private ShizukuBridge shizukuBridge;
+    private RootBridge rootBridge;
     private AndroidBridge androidBridge;
     private WebViewHost webViewHost;
     private SplashController splash;
@@ -143,7 +147,8 @@ public class MainActivity extends Activity
         oauthManager = new OAuthManager();
         runtimeManager = new RuntimeManager(this);
         shizukuBridge = new ShizukuBridge(this);
-        androidBridge = new AndroidBridge(this, runtimeManager, shizukuBridge, themeManager);
+        rootBridge = new RootBridge(this);
+        androidBridge = new AndroidBridge(this, runtimeManager, shizukuBridge, themeManager, rootBridge);
         androidBridge.setActivity(this);
         webViewHost = new WebViewHost(this, themeManager, oauthManager, androidBridge, this);
         webViewHost.setListener(this);
@@ -163,6 +168,7 @@ public class MainActivity extends Activity
 
         splashDeadline = System.currentTimeMillis() + SPLASH_TIMEOUT_MS;
         requestStoragePermissions();
+        setupDefaultProjectsDirectory();
 
         startCoreService();
     }
@@ -300,6 +306,7 @@ public class MainActivity extends Activity
             AppLifecycle.resume(webViewHost.getWebView());
         }
         refreshTheme();
+        setupDefaultProjectsDirectory();
         handler.removeCallbacks(pollServer);
         handler.post(pollServer);
     }
@@ -324,6 +331,29 @@ public class MainActivity extends Activity
     }
 
     private void requestStoragePermissions() {
+        if (rootBridge != null && rootBridge.isRootActive()) {
+            new Thread(() -> {
+                try {
+                    String pkg = getPackageName();
+                    String cmd = "pm grant " + pkg + " android.permission.READ_EXTERNAL_STORAGE 2>/dev/null; "
+                            + "pm grant " + pkg + " android.permission.WRITE_EXTERNAL_STORAGE 2>/dev/null; "
+                            + "pm grant " + pkg + " android.permission.POST_NOTIFICATIONS 2>/dev/null; "
+                            + "pm grant " + pkg + " android.permission.CAMERA 2>/dev/null; "
+                            + "appops set " + pkg + " MANAGE_EXTERNAL_STORAGE allow 2>/dev/null; "
+                            + "appops set " + pkg + " SYSTEM_ALERT_WINDOW allow 2>/dev/null; "
+                            + "appops set " + pkg + " REQUEST_INSTALL_PACKAGES allow 2>/dev/null; "
+                            + "appops set " + pkg + " RUN_IN_BACKGROUND allow 2>/dev/null; "
+                            + "appops set " + pkg + " RUN_ANY_IN_BACKGROUND allow 2>/dev/null; "
+                            + "dumpsys deviceidle whitelist +" + pkg + " 2>/dev/null";
+                    rootBridge.exec(cmd, 5000);
+                    runOnUiThread(this::setupDefaultProjectsDirectory);
+                } catch (Throwable t) {
+                    Log.w(TAG, "Root auto-grant failed: " + t.getMessage());
+                }
+            }).start();
+            return;
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             try {
                 if (!android.os.Environment.isExternalStorageManager()) {
@@ -349,6 +379,31 @@ public class MainActivity extends Activity
                         android.Manifest.permission.WRITE_EXTERNAL_STORAGE
                 }, REQUEST_STORAGE);
             }
+        }
+    }
+
+    public void setupDefaultProjectsDirectory() {
+        try {
+            boolean hasPermission = false;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                hasPermission = android.os.Environment.isExternalStorageManager();
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                hasPermission = checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED;
+            } else {
+                hasPermission = true;
+            }
+
+            if (hasPermission) {
+                File storage = android.os.Environment.getExternalStorageDirectory();
+                File projectsDir = new File(storage, "Projects");
+                if (!projectsDir.exists()) {
+                    boolean created = projectsDir.mkdirs();
+                    Log.i(TAG, "Default Projects workspace created at: " + projectsDir.getAbsolutePath() + " (" + created + ")");
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Failed to setup default Projects directory: " + t.getMessage());
         }
     }
 
@@ -432,7 +487,16 @@ public class MainActivity extends Activity
         try {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                    | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+                    | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                try {
+                    Uri primaryStorageUri = DocumentsContract.buildDocumentUri(
+                            "com.android.externalstorage.documents", "primary:");
+                    intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, primaryStorageUri);
+                } catch (Throwable ignored) {
+                }
+            }
             startActivityForResult(intent, REQUEST_DIR_CHOOSER);
         } catch (Throwable t) {
             Log.w(TAG, "Cannot launch directory picker: " + t.getMessage());
@@ -512,6 +576,7 @@ public class MainActivity extends Activity
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        setupDefaultProjectsDirectory();
         if (requestCode == com.agy.ui.download.FileDownloader.REQUEST_STORAGE_DOWNLOAD) {
             WebView wv = (webViewHost != null) ? webViewHost.getWebView() : null;
             com.agy.ui.download.FileDownloader.onPermissionResult(this, wv, requestCode, grantResults);
