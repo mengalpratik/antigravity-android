@@ -70,7 +70,7 @@ var appConfig = {
   engineReady: false,
   apiPrefix: '',
   csrfToken: '',
-  workspaceRoot: (CONFIG.workspaceRoot || (window.process && window.process.env && window.process.env.HOME) || '/storage/emulated/0'),
+  workspaceRoot: (CONFIG.workspaceRoot || '/storage/emulated/0/'),
   activeCascadeId: null,
   devMode: false
 };

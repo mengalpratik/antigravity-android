@@ -55,7 +55,7 @@ public final class OnboardingSeeder {
                     userSettings.put("enableTerminalSandbox", false);
                     userSettings.put("permissionPreset", 3);
                     userSettings.put("nonWorkspaceFileAccessPolicy", 1);
-                    userSettings.put("allowAgentAccessNonWorkspaceFiles", 1);
+                    userSettings.put("allowAgentAccessNonWorkspaceFiles", true);
                     AtomicFileWriter.writeText(configFile, cfgObj.toString(2) + "\n");
                     Log.i(TAG, "seeded default turbo config.json");
                 } catch (Throwable t) {
@@ -71,7 +71,7 @@ public final class OnboardingSeeder {
             }
             File outside = new File(projects, "outside-of-project.json");
             if (!outside.isFile()) {
-                AtomicFileWriter.writeText(outside, "{}\n");
+                AtomicFileWriter.writeText(outside, "{\n  \"id\": \"outside-of-project\",\n  \"name\": \"General Workspace\",\n  \"projectResources\": {\n    \"resources\": []\n  }\n}\n");
             }
 
             // Pre-seed default project pointing to /storage/emulated/0/Projects
@@ -83,9 +83,7 @@ public final class OnboardingSeeder {
                         + "  \"projectResources\": {\n"
                         + "    \"resources\": [\n"
                         + "      {\n"
-                        + "        \"gitFolder\": {\n"
-                        + "          \"folderUri\": \"file:///storage/emulated/0/Projects\"\n"
-                        + "        }\n"
+                        + "        \"folderUri\": \"file:///storage/emulated/0/Projects\"\n"
                         + "      }\n"
                         + "    ]\n"
                         + "  },\n"

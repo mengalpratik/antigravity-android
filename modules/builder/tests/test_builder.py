@@ -67,6 +67,7 @@ class TestBuilder(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(build_dir, "gen", "com", "agy", "BuildConfig.java")))
         self.assertTrue(os.path.isfile(os.path.join(build_dir, "AndroidManifest.xml")))
 
+    @unittest.skipUnless(shutil.which("aapt"), "aapt tool required")
     def test_02_r_java_overlay_and_dedup(self):
         import subprocess
         project_root = os.path.abspath(os.path.join(BUILDER_DIR, "..", ".."))
@@ -102,6 +103,7 @@ class TestBuilder(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(gen_dir_dev, "com", "agy", "R.java")))
         self.assertTrue(os.path.isfile(os.path.join(gen_dir_dev, "com", "agy", "dev", "R.java")))
 
+    @unittest.skipUnless(shutil.which("aapt") and shutil.which("javac") and shutil.which("java"), "aapt, javac, and java tools required")
     def test_03_and_04_compile_and_dex_argfile(self):
         import subprocess
         project_root = os.path.abspath(os.path.join(BUILDER_DIR, "..", ".."))

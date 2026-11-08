@@ -11,6 +11,7 @@ import org.json.JSONObject;
  */
 public final class GatewayDispatcher {
 
+    private final Context context;
     private final NotificationHandler notificationHandler;
     private final BrowserHandler browserHandler;
     private final PowerHandler powerHandler;
@@ -21,6 +22,7 @@ public final class GatewayDispatcher {
     private final ExecHandler execHandler;
 
     public GatewayDispatcher(Context context, LogRingBuffer logBuffer) {
+        this.context = context != null ? context.getApplicationContext() : null;
         this.notificationHandler = new NotificationHandler(context);
         this.browserHandler = new BrowserHandler(context);
         this.powerHandler = new PowerHandler(context);
@@ -62,6 +64,17 @@ public final class GatewayDispatcher {
                 return logsResp;
             case "exec":
                 return execHandler.handle(payload);
+            case "root_status":
+                JSONObject rootStatus = new JSONObject();
+                try {
+                    com.agy.shell.RootBridge rb = new com.agy.shell.RootBridge(context);
+                    rootStatus.put("ok", true);
+                    rootStatus.put("available", rb.isAvailable());
+                    rootStatus.put("active", rb.isRootActive());
+                    rootStatus.put("provider", rb.getRootProvider());
+                    rootStatus.put("suPath", rb.getSuPath());
+                } catch (Exception ignored) {}
+                return rootStatus;
             case "commands":
                 JSONObject cmdResp = new JSONObject();
                 try {

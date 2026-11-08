@@ -60,6 +60,22 @@ public final class SuLocator {
     }
 
     public String detectProvider() {
+        File su = suBinary();
+        if (su != null && su.exists()) {
+            try {
+                Process p = new ProcessBuilder(su.getAbsolutePath(), "-v").start();
+                java.io.BufferedReader r = new java.io.BufferedReader(new java.io.InputStreamReader(p.getInputStream()));
+                String out = r.readLine();
+                p.waitFor();
+                if (out != null) {
+                    String lower = out.toLowerCase();
+                    if (lower.contains("kernelsu") || lower.contains("ksu")) return "KernelSU";
+                    if (lower.contains("magisk")) return "Magisk";
+                    if (lower.contains("apatch")) return "APatch";
+                    if (lower.contains("supersu")) return "SuperSU";
+                }
+            } catch (Throwable ignored) {}
+        }
         if (new File("/data/adb/ksu").isDirectory() || new File("/data/adb/ksu/bin/su").exists()) {
             return "KernelSU";
         }

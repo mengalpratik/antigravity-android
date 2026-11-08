@@ -51,6 +51,7 @@ public final class EngineConfigJson {
             o.put("home", appContext.getFilesDir().getAbsolutePath());
             o.put("tmpDir", appContext.getCacheDir().getAbsolutePath());
             o.put("appDataDir", runtime.getAppDataDir().getAbsolutePath());
+            o.put("workspaceRoot", "/storage/emulated/0/");
             o.put("shizukuAvailable", shizuku.isAvailable());
             o.put("rootAvailable", root.isAvailable());
             o.put("rootActive", root.isRootActive());

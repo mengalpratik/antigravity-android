@@ -73,6 +73,15 @@ if [ "$CMD" = "post" ]; then
         BODY_TEXT="[$SUBTITLE] $MESSAGE"
     fi
 
+    # 1. Try embedded SystemGatewayServer (fastest, native, zero root required)
+    GW_PORT="$(cat "$PREFIX/../logs/gateway.port" 2>/dev/null || echo "45160")"
+    if curl -s -m 1 -X POST "http://127.0.0.1:$GW_PORT/gateway" \
+        -H "Content-Type: application/json" \
+        -d "{\"command\":\"notify\",\"payload\":{\"title\":$(python3 -c "import json,sys; print(json.dumps(sys.argv[1]))" "$TITLE"),\"message\":$(python3 -c "import json,sys; print(json.dumps(sys.argv[1]))" "$BODY_TEXT"),\"tag\":$(python3 -c "import json,sys; print(json.dumps(sys.argv[1]))" "$TAG")}}" 2>/dev/null | grep -q '"ok":true'; then
+        exit 0
+    fi
+
+    # 2. Try Shizuku (rish)
     if [ -x "$RISH_BIN" ]; then
         # Optional high-resolution logo cache with safe fallback to system default icon.
         LOGO_CACHE="/data/local/tmp/agy_logo.png"
@@ -97,19 +106,34 @@ if [ "$CMD" = "post" ]; then
         "$RISH_BIN" -c "cmd notification post -S bigtext $LARGE_ICON_OPT -t $(printf %q "$TITLE") $(printf %q "$TAG") $(printf %q "$BODY_TEXT")" 2>/dev/null && exit 0
     fi
 
+    # 3. Try Native Root (su)
+    if command -v su >/dev/null 2>&1 && su -c "cmd notification post -S bigtext -t $(printf %q "$TITLE") $(printf %q "$TAG") $(printf %q "$BODY_TEXT")" 2>/dev/null; then
+        exit 0
+    fi
+
     cmd notification post -S bigtext -t "$TITLE" "$TAG" "$BODY_TEXT" 2>/dev/null && exit 0 || true
     echo "[agy-notify] notification queued: $TITLE - $MESSAGE"
 
 elif [ "$CMD" = "cancel" ]; then
+    GW_PORT="$(cat "$PREFIX/../logs/gateway.port" 2>/dev/null || echo "45160")"
+    if curl -s -m 1 -X POST "http://127.0.0.1:$GW_PORT/gateway" \
+        -H "Content-Type: application/json" \
+        -d "{\"command\":\"notify\",\"payload\":{\"action\":\"cancel\",\"tag\":$(python3 -c "import json,sys; print(json.dumps(sys.argv[1]))" "$TAG")}}" 2>/dev/null | grep -q '"ok":true'; then
+        exit 0
+    fi
     if [ -x "$RISH_BIN" ]; then
         "$RISH_BIN" -c "cmd notification cancel $(printf %q "$TAG")" 2>/dev/null || true
+    elif command -v su >/dev/null 2>&1; then
+        su -c "cmd notification cancel $(printf %q "$TAG")" 2>/dev/null || true
     fi
 
 elif [ "$CMD" = "list" ]; then
     if [ -x "$RISH_BIN" ]; then
         "$RISH_BIN" -c "dumpsys notification --noredact" 2>/dev/null | grep -E "pkg=|android.title=|android.text=" | head -n 40
+    elif command -v su >/dev/null 2>&1; then
+        su -c "dumpsys notification --noredact" 2>/dev/null | grep -E "pkg=|android.title=|android.text=" | head -n 40
     else
-        echo "[agy-notify] rish unavailable to inspect system notification tray"
+        echo "[agy-notify] rish/su unavailable to inspect system notification tray"
     fi
 
 else
