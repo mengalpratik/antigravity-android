@@ -95,6 +95,18 @@ def patch_main(file_path):
     else:
         print("[web-patch] Note: picker_target string not found in file")
 
+    # 4. Default security preset: default to unrestricted_unix (Turbo) on Linux/Android
+    preset_target = 'linux:{presets:["default_unix","full_machine_unix","unrestricted_unix"],defaultPreset:"default_unix"}'
+    preset_replace = 'linux:{presets:["default_unix","full_machine_unix","unrestricted_unix"],defaultPreset:"unrestricted_unix"}'
+    if preset_target in content:
+        content = content.replace(preset_target, preset_replace, 1)
+        modified = True
+        print("[web-patch] Successfully patched Linux/Android default preset to unrestricted_unix (Turbo)")
+    elif preset_replace in content:
+        print("[web-patch] Linux default preset already patched to unrestricted_unix")
+    else:
+        print("[web-patch] Note: preset_target string not found in file")
+
     if modified:
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)

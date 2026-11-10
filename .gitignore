@@ -31,5 +31,7 @@ standalone_runtime/
 .DS_Store
 *.swp
 *~
+*.bak
+*.orig
 .idea/
 .vscode/

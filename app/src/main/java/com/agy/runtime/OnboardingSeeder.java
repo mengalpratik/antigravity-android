@@ -51,13 +51,38 @@ public final class OnboardingSeeder {
                         userSettings = new org.json.JSONObject();
                         cfgObj.put("userSettings", userSettings);
                     }
-                    userSettings.put("autoExecutionPolicy", 3);
-                    userSettings.put("enableTerminalSandbox", false);
-                    userSettings.put("permissionPreset", 3);
-                    userSettings.put("nonWorkspaceFileAccessPolicy", 1);
                     userSettings.put("allowAgentAccessNonWorkspaceFiles", true);
+                    userSettings.put("artifactReviewMode", "ARTIFACT_REVIEW_MODE_TURBO");
+                    userSettings.put("autoExecutionPolicy", "CASCADE_COMMANDS_AUTO_EXECUTION_EAGER");
+                    userSettings.put("browserJsExecutionPolicy", "BROWSER_JS_EXECUTION_POLICY_TURBO");
+                    userSettings.put("enableTerminalSandbox", false);
+                    userSettings.put("nonWorkspaceFileAccessPolicy", "AGENT_SETTING_POLICY_ALLOW");
+                    userSettings.put("permissionPreset", 3);
+
+                    org.json.JSONObject globalGrants = new org.json.JSONObject();
+                    org.json.JSONArray allowList = new org.json.JSONArray();
+                    allowList.put("command(*)");
+                    allowList.put("read_file(*)");
+                    allowList.put("write_file(*)");
+                    allowList.put("unsandboxed(*)");
+                    allowList.put("read_file(/)");
+                    allowList.put("write_file(/)");
+                    allowList.put("read_file(/storage/emulated/0)");
+                    allowList.put("write_file(/storage/emulated/0)");
+                    allowList.put("read_file(/storage/emulated/0/**)");
+                    allowList.put("write_file(/storage/emulated/0/**)");
+                    allowList.put("read_file(/data/user/0/com.agy)");
+                    allowList.put("write_file(/data/user/0/com.agy)");
+                    allowList.put("read_file(/data/user/0/com.agy/**)");
+                    allowList.put("write_file(/data/user/0/com.agy/**)");
+                    allowList.put("read_url(*)");
+                    allowList.put("execute_url(*)");
+                    allowList.put("mcp(*)");
+                    globalGrants.put("allow", allowList);
+                    userSettings.put("globalPermissionGrants", globalGrants);
+
                     AtomicFileWriter.writeText(configFile, cfgObj.toString(2) + "\n");
-                    Log.i(TAG, "seeded default turbo config.json");
+                    Log.i(TAG, "seeded default turbo config.json with unrestricted grants");
                 } catch (Throwable t) {
                     Log.w(TAG, "config.json seed failed: " + t.getMessage());
                 }
@@ -70,27 +95,104 @@ public final class OnboardingSeeder {
                 return;
             }
             File outside = new File(projects, "outside-of-project.json");
-            if (!outside.isFile()) {
-                AtomicFileWriter.writeText(outside, "{\n  \"id\": \"outside-of-project\",\n  \"name\": \"General Workspace\",\n  \"projectResources\": {\n    \"resources\": []\n  }\n}\n");
+            if (!outside.isFile() || outside.length() == 0) {
+                try {
+                    org.json.JSONObject outsideObj = new org.json.JSONObject();
+                    outsideObj.put("id", "outside-of-project");
+                    outsideObj.put("name", "General Workspace");
+
+                    org.json.JSONObject resourcesObj = new org.json.JSONObject();
+                    org.json.JSONArray resList = new org.json.JSONArray();
+                    org.json.JSONObject resStorage = new org.json.JSONObject();
+                    resStorage.put("folderUri", "file:///storage/emulated/0");
+                    resList.put(resStorage);
+                    org.json.JSONObject resProj = new org.json.JSONObject();
+                    resProj.put("folderUri", "file:///storage/emulated/0/Projects");
+                    resList.put(resProj);
+                    org.json.JSONObject resInternal = new org.json.JSONObject();
+                    resInternal.put("folderUri", "file:///data/user/0/com.agy/files");
+                    resList.put(resInternal);
+                    resourcesObj.put("resources", resList);
+                    outsideObj.put("projectResources", resourcesObj);
+
+                    org.json.JSONObject settingsObj = new org.json.JSONObject();
+                    settingsObj.put("autoExecutionPolicy", "CASCADE_COMMANDS_AUTO_EXECUTION_EAGER");
+                    settingsObj.put("fileAccessPolicy", "AGENT_SETTING_POLICY_ALLOW");
+                    settingsObj.put("sandboxMode", false);
+                    settingsObj.put("artifactReviewMode", "ARTIFACT_REVIEW_MODE_TURBO");
+                    outsideObj.put("settings", settingsObj);
+
+                    org.json.JSONObject permObj = new org.json.JSONObject();
+                    org.json.JSONObject permInner = new org.json.JSONObject();
+                    org.json.JSONArray pAllow = new org.json.JSONArray();
+                    pAllow.put("command(*)");
+                    pAllow.put("read_file(*)");
+                    pAllow.put("write_file(*)");
+                    pAllow.put("unsandboxed(*)");
+                    pAllow.put("read_file(/)");
+                    pAllow.put("write_file(/)");
+                    pAllow.put("read_file(/storage/emulated/0)");
+                    pAllow.put("write_file(/storage/emulated/0)");
+                    pAllow.put("read_file(/storage/emulated/0/**)");
+                    pAllow.put("write_file(/storage/emulated/0/**)");
+                    permInner.put("allow", pAllow);
+                    permObj.put("permissionGrants", permInner);
+                    outsideObj.put("permissionGrants", permObj);
+
+                    AtomicFileWriter.writeText(outside, outsideObj.toString(2) + "\n");
+                } catch (Throwable t) {
+                    Log.w(TAG, "outside-of-project seed failed: " + t.getMessage());
+                }
             }
 
-            // Pre-seed default project pointing to /storage/emulated/0/Projects
+            // Pre-seed default project pointing to /storage/emulated/0/Projects and /storage/emulated/0
             File defaultProject = new File(projects, "default-projects.json");
-            if (!defaultProject.isFile()) {
-                String defaultJson = "{\n"
-                        + "  \"id\": \"default-projects-workshop\",\n"
-                        + "  \"name\": \"Projects\",\n"
-                        + "  \"projectResources\": {\n"
-                        + "    \"resources\": [\n"
-                        + "      {\n"
-                        + "        \"folderUri\": \"file:///storage/emulated/0/Projects\"\n"
-                        + "      }\n"
-                        + "    ]\n"
-                        + "  },\n"
-                        + "  \"settings\": {},\n"
-                        + "  \"isWorkspaceOnly\": false\n"
-                        + "}\n";
-                AtomicFileWriter.writeText(defaultProject, defaultJson);
+            if (!defaultProject.isFile() || defaultProject.length() == 0) {
+                try {
+                    org.json.JSONObject defProjObj = new org.json.JSONObject();
+                    defProjObj.put("id", "default-projects-workshop");
+                    defProjObj.put("name", "Projects");
+
+                    org.json.JSONObject resourcesObj = new org.json.JSONObject();
+                    org.json.JSONArray resList = new org.json.JSONArray();
+                    org.json.JSONObject resProj = new org.json.JSONObject();
+                    resProj.put("folderUri", "file:///storage/emulated/0/Projects");
+                    resList.put(resProj);
+                    org.json.JSONObject resStorage = new org.json.JSONObject();
+                    resStorage.put("folderUri", "file:///storage/emulated/0");
+                    resList.put(resStorage);
+                    resourcesObj.put("resources", resList);
+                    defProjObj.put("projectResources", resourcesObj);
+
+                    org.json.JSONObject settingsObj = new org.json.JSONObject();
+                    settingsObj.put("autoExecutionPolicy", "CASCADE_COMMANDS_AUTO_EXECUTION_EAGER");
+                    settingsObj.put("fileAccessPolicy", "AGENT_SETTING_POLICY_ALLOW");
+                    settingsObj.put("sandboxMode", false);
+                    settingsObj.put("artifactReviewMode", "ARTIFACT_REVIEW_MODE_TURBO");
+                    defProjObj.put("settings", settingsObj);
+
+                    org.json.JSONObject permObj = new org.json.JSONObject();
+                    org.json.JSONObject permInner = new org.json.JSONObject();
+                    org.json.JSONArray pAllow = new org.json.JSONArray();
+                    pAllow.put("command(*)");
+                    pAllow.put("read_file(*)");
+                    pAllow.put("write_file(*)");
+                    pAllow.put("unsandboxed(*)");
+                    pAllow.put("read_file(/)");
+                    pAllow.put("write_file(/)");
+                    pAllow.put("read_file(/storage/emulated/0)");
+                    pAllow.put("write_file(/storage/emulated/0)");
+                    pAllow.put("read_file(/storage/emulated/0/**)");
+                    pAllow.put("write_file(/storage/emulated/0/**)");
+                    permInner.put("allow", pAllow);
+                    permObj.put("permissionGrants", permInner);
+                    defProjObj.put("permissionGrants", permObj);
+                    defProjObj.put("isWorkspaceOnly", false);
+
+                    AtomicFileWriter.writeText(defaultProject, defProjObj.toString(2) + "\n");
+                } catch (Throwable t) {
+                    Log.w(TAG, "default-projects seed failed: " + t.getMessage());
+                }
             }
 
             try {

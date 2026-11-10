@@ -98,25 +98,26 @@ fi
 
 # ---- dynamic notification bridge -------------------------------------------
 NOTIFY_TMP="$(mktemp -d)"
-mkdir -p "$NOTIFY_TMP/bin"
-cat > "$NOTIFY_TMP/bin/rish" <<'EOF'
+mkdir -p "$NOTIFY_TMP/usr/bin" "$NOTIFY_TMP/logs"
+echo "45199" > "$NOTIFY_TMP/logs/gateway.port"
+cat > "$NOTIFY_TMP/usr/bin/rish" <<'EOF'
 #!/system/bin/sh
 printf '%s\n' "$*" >> "$AGY_NOTIFY_CAPTURE"
 EOF
-chmod +x "$NOTIFY_TMP/bin/rish"
+chmod +x "$NOTIFY_TMP/usr/bin/rish"
 export AGY_NOTIFY_CAPTURE="$NOTIFY_TMP/calls.log"
-if PREFIX="$NOTIFY_TMP" bash "$SELF/../overlay/bin/agy-notify" cancel task_123 \
+if PREFIX="$NOTIFY_TMP/usr" bash "$SELF/../overlay/bin/agy-notify" cancel task_123 \
         && grep -Fq 'cmd notification cancel task_123' "$AGY_NOTIFY_CAPTURE"; then
     ok "agy-notify cancel forwards its positional tag"
 else
     bad "agy-notify cancel forwards its positional tag"
 fi
-if PREFIX="$NOTIFY_TMP" bash "$SELF/../overlay/bin/agy-notify" cancel >/dev/null 2>&1; then
+if PREFIX="$NOTIFY_TMP/usr" bash "$SELF/../overlay/bin/agy-notify" cancel >/dev/null 2>&1; then
     bad "agy-notify rejects missing cancel tag"
 else
     ok "agy-notify rejects missing cancel tag"
 fi
-if PREFIX="$NOTIFY_TMP" bash "$SELF/../overlay/bin/agy-notify" post -t "Test" -m "Msg" --tag "post_123" \
+if PREFIX="$NOTIFY_TMP/usr" bash "$SELF/../overlay/bin/agy-notify" post -t "Test" -m "Msg" --tag "post_123" \
         && grep -Fq 'cmd notification post -S bigtext  -t Test post_123 Msg' "$AGY_NOTIFY_CAPTURE"; then
     ok "agy-notify post falls back cleanly without hardcoded logo"
 else
