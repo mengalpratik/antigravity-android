@@ -47,7 +47,7 @@ To empower software engineers, developers, and AI researchers with a **fully aut
 +-----------------------------------+             +---------------------------------+
 ```
 
-1. **Autonomous Code Generation & Editing:** The agent plans multi-step coding objectives, reads and writes files across external storage (`/storage/emulated/0/Projects/`) and internal userspace, and iterates on build outputs.
+1. **Autonomous Code Generation & Editing:** The agent plans multi-step coding objectives, reads and writes files across external storage (`/storage/emulated/0/Antigravity/` containing centralized `Workspace/` and `Projects/`) and internal userspace, and iterates on build outputs.
 2. **Interactive Terminal & Tool Execution:** Runs native shell tools (`python3`, `git`, `bash`, `curl`, `clang`) inside native Android Bionic userspace without virtualization or container overhead.
 3. **Elevated System Access:**
    - **Shizuku Bridge (`rish`):** Dispatches ADB-level system shell operations (`uid=2000`) for non-rooted devices to query packages, run logcat, and inspect system services.
@@ -64,8 +64,8 @@ To empower software engineers, developers, and AI researchers with a **fully aut
 | :--- | :--- | :--- |
 | **Package Name (Release)** | `com.agy` | Standard production application identifier. |
 | **Package Name (Dev)** | `com.agy.dev` | Isolated debuggable package for concurrent installation. |
-| **Version Name** | `2.4.2` | Production release version. |
-| **Version Code** | `18` | Incremental Android version code. |
+| **Version Name** | `2.5.0` | Production release version. |
+| **Version Code** | `19` | Incremental Android version code. |
 | **Minimum SDK** | `24` (Android 7.0 Nougat) | Baseline requirement for modern Android Java APIs and ARM64 support. |
 | **Target SDK** | `28` (Android 9.0 Pie) | **Strict Technical Requirement:** Android 10+ (API 29+) enforces W^X (Write XOR Execute) memory restrictions on app-private storage directories (`/data/user/0/<pkg>/files`), blocking `execve` execution of dynamically unpacked ELF binaries. Targeting API 28 preserves the platform capability to execute the core runtime directly. |
 | **Architecture** | ARM64 / `aarch64` | Native 64-bit ARM execution. |

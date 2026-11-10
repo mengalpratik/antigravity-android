@@ -71,7 +71,8 @@ flowchart TD
 
     subgraph STORAGE_LAYER["Filesystem & Android Platform"]
         INTERNAL["App Data: /data/user/0/com.agy/files"]
-        EXTERNAL["Project Workspace: /storage/emulated/0/Projects"]
+        EXTERNAL["Project Workspace: /storage/emulated/0/Antigravity"]
+        REGISTRY["SQLite Project Registry: antigravity_projects.db"]
         TOKEN[".gemini/jetski-standalone-oauth-token"]
     end
 
@@ -81,6 +82,7 @@ flowchart TD
     LS -->|Terminal PTY Spawner| SHELL
     SHELL <-->|Read / Write| EXTERNAL
     LS <-->|State & Cache| INTERNAL
+    SGW <-->|Metadata CRUD| REGISTRY
     OM -.->|Polls Auth Token| TOKEN
 ```
 
@@ -108,6 +110,11 @@ The native Android host acts as the supervisor, resource manager, and hardware b
     - `clipboard`: Reads or updates the Android system clipboard (`ClipboardHandler.java`).
     - `system_info`: Queries battery level, memory stats, and OS version (`DeviceHandler.java`).
     - `exec`: Dispatches commands with optional privilege elevation (`ExecHandler.java`).
+    - `workspace/*`: Dispatches workspace and project lifecycle actions (`WorkspaceGatewayHandler.java`).
+- **`WorkspaceStorageManager.java` & `ProjectRegistryRepository.java`:**
+  - **`WorkspaceStorageManager`:** Manages the centralized directory hierarchy under `/storage/emulated/0/Antigravity/` (`Workspace/`, `Projects/`, `Templates/`, `Exports/`, `Shared/`) with automatic Scoped Storage fallback.
+  - **`ProjectRegistryRepository` & `ProjectDbHelper`:** Thread-safe SQLite repository (`antigravity_projects.db`) storing immutable UUID project identities, source/workspace bindings, schema versions (`1.0.0`), and project statuses (`ACTIVE`/`ARCHIVED`).
+  - **`WorkspaceDocumentGenerator` & `ProjectYamlParser`:** Generates root markdown documentation (`PROJECT_CONTEXT.md`, `TASKS.md`), subdirectories (`planning/`, `architecture/`, `research/`, `reports/`, `collaboration/`, `sessions/`), human-readable `project.yaml` manifests, and syncs registered projects to `$HOME/.gemini/config/projects/<UUID>.json`.
 - **`AndroidBridge.java`:**
   - JavaScript interface registered in the Chromium WebView under `window.AndroidBridge`.
   - Provides two-way communication between the web frontend and Android: handles file downloads, UI readiness signals, desktop mode toggles, and system toast messages.

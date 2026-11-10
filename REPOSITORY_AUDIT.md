@@ -40,7 +40,7 @@ The audit verified application architecture, tested all subsystem modules, perfo
 
 ### Current Git State
 - **Branch:** `main`
-- **Remote Origin:** `https://github.com/werdio325-png/antigravity-android`
+- **Remote Origin:** `https://github.com/mengalpratik/antigravity-android`
 - **History Status:** Ahead of `origin/main` by 2 commits (`e2f5400`, `41e13d9`).
 - **Safety Policy:**
   - No commits were rewritten or altered.

@@ -1,4 +1,54 @@
-# Antigravity for Android v2.4.2
+# Antigravity for Android v2.5.0
+
+## Спецификация пакетов релиза / Release Package Specification
+
+| Файл пакета / Package | Идентификатор / App ID | Порт / Port | Описание / Description |
+| :--- | :--- | :--- | :--- |
+| **`antigravity.apk`** | `com.agy` | 45157 | Стандартная релизная версия с централизованной архитектурой Workspace / Standard release edition with Centralized Workspace Architecture. |
+| **`antigravity-region-bypass.apk`** | `com.agy` | 45157 | Редакция с обходом региональных ограничений аккаунтов / Release edition with account eligibility gate bypass. |
+| **`SHA256SUMS.txt`** | — | — | Криптографические контрольные суммы SHA-256 / SHA-256 Checksums. |
+
+---
+
+## Новые возможности и изменения (v2.5.0) / Highlights & Changes
+
+### 1. Архитектура централизованного рабочего пространства (Centralized Workspace Architecture)
+* **Структура директорий `Antigravity/` по умолчанию:**
+  * `Workspace/<ProjectName>/`: выделенная директория для планирования, архитектурных спецификаций, исследований, аудитов и сессий ИИ-агента;
+  * `Projects/<ProjectName>/`: изолированное хранилище фактического исходного кода проектов;
+  * `Templates/`: встроенные шаблоны проектов, документации и системной архитектуры (`project-templates/`, `documentation-templates/`, `architecture-templates/`);
+  * `Exports/`: централизованный экспорт отчетов, пакетов документации и резервных копий (`reports/`, `documentation-packages/`, `backups/`);
+  * `Shared/`: общие руководства, ссылки и ресурсы разработчика (`references/`, `resources/`, `common-guidelines/`).
+* **Четкое разделение (Separation of Concerns):** Исходный код проекта не засоряется избыточной документацией; вся история проектирования и протоколы взаимодействия хранятся централизованно в `Workspace/`.
+
+### 2. Единый реестр проектов (Unified SQLite Project Registry)
+* **Потокобезопасная база данных `antigravity_projects.db` (`ProjectRegistryRepository.java`):**
+  * Хранение уникальных UUID проектов, путей к исходному коду, путей к рабочей документации, статусов (`ACTIVE`/`ARCHIVED`), типов размещения (`DEFAULT`/`CUSTOM`) и версий схемы (`1.0.0`).
+* **Манифест `project.yaml` (`ProjectYamlParser.java`):**
+  * Человекочитаемый манифест метаданных без внешних зависимостей в корне каждого проекта.
+
+### 3. Рабочие процессы проектов (Project Workflows)
+* **Quick Project (Быстрый проект):** Создание структуры проекта в `Antigravity/Projects/` и документации в `Antigravity/Workspace/` в 1 действие.
+* **Import Existing Project (Импорт существующего проекта):** Подключение любого внешнего каталога с сохранением исходного расположения и автоматической инициализацией централизованной документации.
+* **Reconnect Project (Переподключение):** Обнаружение перемещенных или временно недоступных каталогов с сохранением Project ID и истории.
+
+### 4. REST API шлюза System Gateway (`WorkspaceGatewayHandler.java`)
+* Маршруты на `127.0.0.1:45160`:
+  * `GET /workspace/list`
+  * `POST /workspace/quick-create`
+  * `POST /workspace/import`
+  * `POST /workspace/reconnect`
+  * `POST /workspace/archive`
+  * `POST /workspace/restore`
+  * `POST /workspace/remove`
+  * `POST /workspace/verify`
+
+### 5. Автоматическая миграция проектов (Legacy Migration)
+* Модуль `OnboardingSeeder.java` автоматически сканирует `/storage/emulated/0/Projects/` и регистрирует существующие проекты в новой централизованной структуре без потери данных.
+
+---
+
+## Antigravity for Android v2.4.2
 
 ## Спецификация пакетов релиза
 

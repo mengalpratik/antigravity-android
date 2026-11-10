@@ -161,6 +161,9 @@ public final class OnboardingSeeder {
                     org.json.JSONObject resStorage = new org.json.JSONObject();
                     resStorage.put("folderUri", "file:///storage/emulated/0");
                     resList.put(resStorage);
+                    org.json.JSONObject resAntigravity = new org.json.JSONObject();
+                    resAntigravity.put("folderUri", "file:///storage/emulated/0/Antigravity");
+                    resList.put(resAntigravity);
                     resourcesObj.put("resources", resList);
                     defProjObj.put("projectResources", resourcesObj);
 
@@ -184,6 +187,8 @@ public final class OnboardingSeeder {
                     pAllow.put("write_file(/storage/emulated/0)");
                     pAllow.put("read_file(/storage/emulated/0/**)");
                     pAllow.put("write_file(/storage/emulated/0/**)");
+                    pAllow.put("read_file(/storage/emulated/0/Antigravity/**)");
+                    pAllow.put("write_file(/storage/emulated/0/Antigravity/**)");
                     permInner.put("allow", pAllow);
                     permObj.put("permissionGrants", permInner);
                     defProjObj.put("permissionGrants", permObj);
@@ -196,9 +201,48 @@ public final class OnboardingSeeder {
             }
 
             try {
+                // Initialize Centralized Workspace architecture
+                com.agy.workspace.storage.WorkspaceStorageManager storageMgr =
+                        new com.agy.workspace.storage.WorkspaceStorageManager(appContext);
+                storageMgr.initializeHierarchy();
+
+                // Non-destructive migration for existing legacy /storage/emulated/0/Projects
                 File sharedProjects = new File("/storage/emulated/0/Projects");
                 if (!sharedProjects.exists()) {
                     sharedProjects.mkdirs();
+                } else {
+                    File[] subdirs = sharedProjects.listFiles();
+                    if (subdirs != null) {
+                        com.agy.workspace.db.ProjectRegistryRepository repo =
+                                new com.agy.workspace.db.ProjectRegistryRepository(appContext);
+                        com.agy.workspace.generator.WorkspaceDocumentGenerator docGen =
+                                new com.agy.workspace.generator.WorkspaceDocumentGenerator(appContext);
+                        try {
+                            for (File sub : subdirs) {
+                                if (sub.isDirectory() && !sub.getName().startsWith(".")) {
+                                    String absPath = sub.getAbsolutePath();
+                                    if (repo.getProjectBySourcePath(absPath) == null) {
+                                        com.agy.workspace.model.ProjectRecord p =
+                                                new com.agy.workspace.model.ProjectRecord();
+                                        p.setId(java.util.UUID.randomUUID().toString());
+                                        p.setName(sub.getName());
+                                        String cleanSlug = sub.getName().toLowerCase().replaceAll("[^a-z0-9_\\-]+", "-");
+                                        p.setSlug(cleanSlug.isEmpty() ? "project" : cleanSlug);
+                                        p.setSourcePath(absPath);
+                                        p.setSourceUri("file://" + absPath);
+                                        p.setSourceType(com.agy.workspace.model.ProjectRecord.SOURCE_TYPE_DEFAULT);
+                                        File gitDir = new File(sub, ".git");
+                                        if (gitDir.isDirectory()) p.setVcsType("git");
+                                        docGen.initializeWorkspace(p);
+                                        repo.insertProject(p);
+                                        Log.i(TAG, "Migrated legacy project: " + sub.getName() + " -> centralized workspace");
+                                    }
+                                }
+                            }
+                        } finally {
+                            repo.close();
+                        }
+                    }
                 }
             } catch (Throwable ignored) {}
         } catch (Exception e) {

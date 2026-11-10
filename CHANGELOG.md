@@ -5,6 +5,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.5.0] - 2026-11-10
+
+### Added
+- **Centralized Workspace Architecture (Architecture A):**
+  - Introduced unified root hierarchy at `Internal Storage/Antigravity/` with dedicated directories:
+    - `Workspace/`: Project-specific planning, architecture, research, reports, collaboration, and session logs.
+    - `Projects/`: Actual project source-code trees for default-created projects.
+    - `Templates/`: Standard templates for projects, documentation, and system architectures.
+    - `Exports/`: Centralized store for reports, documentation packages, and workspace backups.
+    - `Shared/`: Global references, developer guidelines, and reusable shared resources.
+- **Unified SQLite Project Registry:**
+  - Integrated `antigravity_projects.db` with thread-safe `ProjectRegistryRepository` tracking UUID project identities, display names, source directory bindings, workspace directory bindings, creation/update timestamps, status (`ACTIVE`/`ARCHIVED`), source location types (`DEFAULT`/`CUSTOM`), and workspace schema versions (`1.0.0`).
+  - Added zero-dependency `ProjectYamlParser` generating human-readable `project.yaml` manifests in every workspace root.
+- **Automated Workspace Document Generator:**
+  - Automatically initializes standard root documents (`project.yaml`, `PROJECT_CONTEXT.md`, `TASKS.md`) and pre-configures structured folders (`planning/`, `architecture/`, `research/`, `reports/`, `collaboration/`, `sessions/`).
+  - Syncs registered project entries to `$HOME/.gemini/config/projects/<UUID>.json` for autonomous agent awareness.
+- **System Gateway Workspace REST APIs:**
+  - Added dedicated endpoints on `127.0.0.1:45160`:
+    - `GET /workspace/list`: List all registered projects with status and directory references.
+    - `POST /workspace/quick-create`: 1-tap creation of a default project and linked centralized documentation workspace.
+    - `POST /workspace/import`: Register an existing project repository from any custom storage location without modifying or duplicating source files.
+    - `POST /workspace/reconnect`: Detect and reconnect previously registered projects whose storage mount or source paths changed.
+    - `POST /workspace/archive` & `POST /workspace/restore`: Manage project lifecycle states.
+    - `POST /workspace/remove`: Safely deregister projects from the system while protecting underlying source code.
+    - `POST /workspace/verify`: Validate directory existence and structural integrity.
+- **Legacy Migration & Auto-Seeding:**
+  - Integrated automatic legacy migration in `OnboardingSeeder.java` transitioning legacy projects from `/storage/emulated/0/Projects/` to the new centralized workspace architecture.
+  - Pre-seeds `/storage/emulated/0/Antigravity/` path grants and folder picker fallbacks.
+
+---
+
 ## [2.4.2] - 2026-11-10
 
 ### Added

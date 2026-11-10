@@ -395,11 +395,17 @@ public class MainActivity extends Activity
             }
 
             if (hasPermission) {
+                // Initialize centralized Antigravity workspace architecture
+                com.agy.workspace.storage.WorkspaceStorageManager storageMgr =
+                        new com.agy.workspace.storage.WorkspaceStorageManager(this);
+                storageMgr.initializeHierarchy();
+
+                // Maintain backwards compatibility with legacy Projects directory
                 File storage = android.os.Environment.getExternalStorageDirectory();
                 File projectsDir = new File(storage, "Projects");
                 if (!projectsDir.exists()) {
                     boolean created = projectsDir.mkdirs();
-                    Log.i(TAG, "Default Projects workspace created at: " + projectsDir.getAbsolutePath() + " (" + created + ")");
+                    Log.i(TAG, "Legacy Projects directory created at: " + projectsDir.getAbsolutePath() + " (" + created + ")");
                 }
             }
         } catch (Throwable t) {

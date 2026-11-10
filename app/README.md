@@ -125,12 +125,26 @@ graph TD
 | `vibrate` | `DeviceHandler` | Тактильный отклик (Haptic Feedback) заданной длительности. |
 | `toast` | `DeviceHandler` | Отображение нативных всплывающих сообщений (Toast). |
 | `exec` | `ExecHandler` | Выполнение команд в шелле (`/system/bin/sh` или повышенный `rish` через Shizuku) с таймаутом и захватом потоков. |
+| `workspace_list` | `WorkspaceGatewayHandler` | Получение списка всех зарегистрированных проектов и путей централизованного воркспейса. |
+| `workspace_quick_create` | `WorkspaceGatewayHandler` | Быстрое создание проекта в `Antigravity/Projects/` и инициализация воркспейса в `Antigravity/Workspace/`. |
+| `workspace_import` | `WorkspaceGatewayHandler` | Недеструктивный импорт существующей директории с созданием централизованного воркспейса. |
+| `workspace_reconnect` | `WorkspaceGatewayHandler` | Перепривязка перемещенной или недоступной папки исходников к существующему Project ID и документации. |
+| `workspace_archive` / `restore` | `WorkspaceGatewayHandler` | Архивирование и восстановление проектов без удаления данных. |
+| `workspace_remove` | `WorkspaceGatewayHandler` | Удаление проекта из индекса Antigravity с гарантированным сохранением исходного кода. |
+| `workspace_verify` | `WorkspaceGatewayHandler` | Проверка доступности путей исходников и актуализация статусов `ACTIVE`/`DISCONNECTED`. |
 | `/gateway/status` | `SystemGatewayServer` | Проверка состояния шлюза (health check). |
 | `/gateway/logs` | `SystemGatewayServer` | Чтение последних строк системного лога из кольцевого буфера памяти. |
 | `/gateway/commands` | `SystemGatewayServer` | История выполненных шлюзом команд и их статусов. |
 | `/gateway/crash` | `SystemGatewayServer` | Диагностический снимок последнего падения ядра. |
 
-### 2.4. Безопасность и JavaScript Bridge (`com.agy.bridge`)
+### 2.4. Централизованный Воркспейс (`com.agy.workspace`)
+
+Модуль управления проектами и децентрализованной документацией по стандарту Architecture A:
+- **`com.agy.workspace.storage.WorkspaceStorageManager`**: Инициализация и разрешение путей корневой иерархии `Internal Storage/Antigravity/` (`Workspace/`, `Projects/`, `Templates/`, `Exports/`, `Shared/`) с автоматическим переходом на scoped storage при отсутствии `MANAGE_EXTERNAL_STORAGE`.
+- **`com.agy.workspace.db.ProjectRegistryRepository` & `ProjectDbHelper`**: Потокобезопасный SQLite-реестр проектов (`antigravity_projects.db`) с версионированием схемы, отслеживанием статусов (`ACTIVE`, `ARCHIVED`, `DISCONNECTED`) и ссылками на SAF URI.
+- **`com.agy.workspace.generator.WorkspaceDocumentGenerator` & `ProjectYamlParser`**: Автоматическая генерация человекочитаемых манифестов `project.yaml`, базовой документации (`PROJECT_CONTEXT.md`, `TASKS.md`) и синхронизация с языковым сервером (`$HOME/.gemini/config/projects/<UUID>.json`).
+
+### 2.5. Безопасность и JavaScript Bridge (`com.agy.bridge`)
 
 Класс `AndroidBridge` предоставляет минимальный, жестко изолированный интерфейс для фронтенда (`@JavascriptInterface`).
 

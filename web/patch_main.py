@@ -80,16 +80,16 @@ def patch_main(file_path):
         modified = True
         print("[web-patch] Successfully patched Desktop Mode toggle into main.js (mobile by default, English)")
 
-    # 3. Interactive Folder Picker default path: default to /storage/emulated/0/
+    # 3. Interactive Folder Picker default path: default to /storage/emulated/0/Antigravity/
     picker_target = 'initialPath:b?b.fsPath:ch?"C:/":"/"'
     if picker_target in content:
         content = content.replace(
             picker_target,
-            'initialPath:(window.__APP_CONFIG__&&window.__APP_CONFIG__.workspaceRoot?window.__APP_CONFIG__.workspaceRoot:"/storage/emulated/0/")',
+            'initialPath:(window.__APP_CONFIG__&&window.__APP_CONFIG__.workspaceRoot?window.__APP_CONFIG__.workspaceRoot:"/storage/emulated/0/Antigravity/")',
             1
         )
         modified = True
-        print("[web-patch] Successfully patched folder picker initialPath to default to /storage/emulated/0/")
+        print("[web-patch] Successfully patched folder picker initialPath to default to /storage/emulated/0/Antigravity/")
     elif 'window.__APP_CONFIG__.workspaceRoot' in content:
         print("[web-patch] Folder picker initialPath already patched")
     else:

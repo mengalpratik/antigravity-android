@@ -14,7 +14,7 @@
 
   [![Android](https://img.shields.io/badge/Android-7.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](https://android.com)
   [![Arch](https://img.shields.io/badge/ARM64-v8.0--A%2B-blue?style=flat-square)](https://arm.com)
-  [![Release](https://img.shields.io/badge/Version-2.4.2-blueviolet?style=flat-square)](https://github.com/werdio325-png/antigravity-android/releases)
+  [![Release](https://img.shields.io/badge/Version-2.5.0-blueviolet?style=flat-square)](https://github.com/mengalpratik/antigravity-android/releases)
   [![License](https://img.shields.io/badge/License-Apache_2.0-orange?style=flat-square)](LICENSE)
 
   <br/>
@@ -74,6 +74,20 @@ Unlike conventional approaches that rely on heavy virtualization, chroot contain
 
 ## 3. Feature Overview
 
+- **Centralized Workspace Management (Architecture A):**
+  - **Logical Separation:** Project planning, architecture designs, research, audits, and AI collaboration records are organized centrally in `Internal Storage/Antigravity/Workspace/<ProjectName>/`, keeping the source tree clean.
+  - **Dedicated Source Directories:** Default-created projects reside in `Internal Storage/Antigravity/Projects/<ProjectName>/`, while custom external projects remain untouched at their original authorized locations.
+  - **Extensible Resource Categories:** Built-in directories for project, documentation, and architecture templates (`Templates/`), exports and backups (`Exports/`), and shared guidelines and references (`Shared/`).
+  - **Structured Project Documentation:** Automated initialization of standard metadata (`project.yaml`), project context (`PROJECT_CONTEXT.md`), active task tracking (`TASKS.md`), and organized subdirectories (`planning/`, `architecture/`, `research/`, `reports/`, `collaboration/`, `sessions/`).
+- **Unified SQLite Project Registry:**
+  - Backed by an internal SQLite database (`antigravity_projects.db`) managed via `ProjectRegistryRepository`.
+  - Tracks unique, immutable UUID project identities, source-to-workspace bindings, schema versions (`1.0.0`), active/archived lifecycle status, and human-readable `project.yaml` manifests.
+- **Three Flexible Project Workflows:**
+  - **Quick Project:** 1-tap creation of a default project in `Antigravity/Projects/` with synchronized documentation in `Antigravity/Workspace/`.
+  - **Import Existing Project:** Register any external directory without modifying, moving, or duplicating source files; initializes centralized workspace documentation automatically.
+  - **Reconnect Project:** Detect and reconnect previously registered projects whose storage mount or source paths changed, preserving project UUIDs and full documentation history.
+- **System Gateway Workspace REST APIs:**
+  - Built-in HTTP endpoints on `127.0.0.1:45160` (`/workspace/list`, `/workspace/quick-create`, `/workspace/import`, `/workspace/reconnect`, `/workspace/archive`, `/workspace/restore`, `/workspace/remove`, `/workspace/verify`).
 - **Autonomous Agentic Coding:** Plans development tasks, edits multiple files across project trees, runs terminal commands, and resolves compiler errors automatically.
 - **Native Bionic Userspace:** Operates directly on Android ARM64 without container or emulation overhead.
 - **Built-in Package Manager (`pkg`):** Install full developer runtimes (`python3`, `git`, `nodejs`, `clang`, `bash`) directly from curated Android repositories.
@@ -99,12 +113,52 @@ Unlike conventional approaches that rely on heavy virtualization, chroot contain
        │ System Gateway (127.0.0.1:45160)         │ Native PTY Terminal
        ▼                                          ▼
 [ Android System Gateway (app/) ]         [ Native Bionic Userspace (env/) ]
-  - Status Notifications                   - Bash 5.3, Python 3, Git, Node.js
-  - Clipboard, Battery, Toast              - pkg package manager
-  - Shizuku & Root execution               - agy-daemon background tasks
+  - Centralized Workspace & Registry       - Bash 5.3, Python 3, Git, Node.js
+  - SQLite Database (antigravity_projects.db) - pkg package manager
+  - Status Notifications & Shizuku/Root    - agy-daemon background tasks
+  - Safe File & Media Pickers              - Storage Root: /storage/emulated/0/Antigravity/
 ```
 
-For a comprehensive technical breakdown of component interactions, see [ARCHITECTURE.md](ARCHITECTURE.md).
+### 4.1. Centralized Workspace Hierarchy
+
+```text
+Antigravity/
+│
+├── Workspace/
+│   ├── ProjectAlpha/
+│   │   ├── project.yaml                 # Human-readable project manifest & schema
+│   │   ├── PROJECT_CONTEXT.md           # Scope, architecture, tech stack, constraints
+│   │   ├── TASKS.md                     # Active task tracker, completed milestones
+│   │   ├── planning/                    # Requirements, RFCs, milestone roadmaps
+│   │   ├── architecture/                # System diagrams, schemas, API contracts
+│   │   ├── research/                    # Benchmarks, tech evaluations, spike notes
+│   │   ├── reports/                     # Test summaries, security audits, reviews
+│   │   ├── collaboration/               # Agent prompt instructions, handoff notes
+│   │   └── sessions/                    # Chronological agent session summaries
+│   │
+│   └── AnotherProject/
+│
+├── Projects/                            # Default location for new source projects
+│   ├── ProjectAlpha/                    # Clean source code repository
+│   └── AnotherProject/
+│
+├── Templates/                           # Reusable project & doc templates
+│   ├── project-templates/
+│   ├── documentation-templates/
+│   └── architecture-templates/
+│
+├── Exports/                             # Exported reports, archives & backups
+│   ├── reports/
+│   ├── documentation-packages/
+│   └── backups/
+│
+└── Shared/                              # Shared developer knowledge & guidelines
+    ├── references/
+    ├── resources/
+    └── common-guidelines/
+```
+
+For a comprehensive technical breakdown of component interactions and database schema, see [ARCHITECTURE.md](ARCHITECTURE.md) and [docs/CENTRALIZED_WORKSPACE_PLAN.md](docs/CENTRALIZED_WORKSPACE_PLAN.md).
 
 ---
 
@@ -131,11 +185,11 @@ For a comprehensive technical breakdown of component interactions, see [ARCHITEC
 
 ## 7. APK Installation Instructions
 
-1. Download the latest release package from [GitHub Releases](https://github.com/werdio325-png/antigravity-android/releases):
+1. Download the latest release package from [GitHub Releases](https://github.com/mengalpratik/antigravity-android/releases):
    - **`antigravity.apk`** &mdash; Standard production release (recommended).
    - **`antigravity-region-bypass.apk`** &mdash; Production release with account eligibility gate bypass.
 2. Install the APK on your device.
-3. Open **Antigravity**. Upon first launch, grant **All Files Access** (`MANAGE_EXTERNAL_STORAGE`) so the agent can access your project folders.
+3. Open **Antigravity**. Upon first launch, grant **All Files Access** (`MANAGE_EXTERNAL_STORAGE`) so the agent can access your project folders (automatically structured under `Internal Storage/Antigravity/`).
 4. *(Optional)* If using Shizuku for elevated operations, grant Shizuku permission when prompted.
 5. Open the terminal and install standard development packages:
    ```bash
@@ -151,7 +205,7 @@ Antigravity uses a lightweight, Gradle-free build pipeline that can be executed 
 
 ```bash
 # Clone the repository
-git clone https://github.com/werdio325-png/antigravity-android.git
+git clone https://github.com/mengalpratik/antigravity-android.git
 cd antigravity-android
 
 # Build the standard production APK (outputs dist/antigravity.apk):
@@ -174,7 +228,7 @@ For complete step-by-step instructions, dependency setup, and CI configurations,
 | :--- | :--- |
 | `INTERNET` | Loopback communication with internal core servers (127.0.0.1) and outbound HTTPS to Gemini / Google Cloud APIs. |
 | `ACCESS_NETWORK_STATE` | Monitors active Wi-Fi and mobile connectivity for resilient API polling. |
-| `MANAGE_EXTERNAL_STORAGE` | Full read/write access to project workspaces in `/storage/emulated/0/Projects/` on Android 11+. |
+| `MANAGE_EXTERNAL_STORAGE` | Full read/write access to project workspaces and code in `/storage/emulated/0/Antigravity/` (`Workspace/`, `Projects/`, `Templates/`, `Exports/`, `Shared/`) on Android 11+. |
 | `READ_EXTERNAL_STORAGE` | File access on Android 7.0 &ndash; 9.0 devices. |
 | `WRITE_EXTERNAL_STORAGE` | Writing generated code and assets on Android 7.0 &ndash; 9.0 devices. |
 | `FOREGROUND_SERVICE` | Runs the core server process continuously in the background without OS freezing. |

@@ -12,7 +12,7 @@ We take the security of Antigravity for Android seriously. If you discover a sec
 
 ### Reporting Procedure
 - **Private Disclosure:** Please do **NOT** disclose vulnerabilities publicly in GitHub Issues or discussions.
-- **Reporting Contact:** Submit security reports directly to the project maintainer, **Pratik Mengal**, via email or via a [GitHub Private Security Advisory](https://github.com/werdio325-png/antigravity-android/security/advisories/new).
+- **Reporting Contact:** Submit security reports directly to the project maintainer, **Pratik Mengal**, via email or via a [GitHub Private Security Advisory](https://github.com/mengalpratik/antigravity-android/security/advisories/new).
 - **Report Details:** Please include:
   1. A clear description of the vulnerability.
   2. Proof of Concept (PoC) steps or exploit scenario.

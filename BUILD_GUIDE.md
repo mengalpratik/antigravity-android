@@ -141,7 +141,7 @@ python3 script.py
 ```
 
 ### 3. Git `dubious ownership` on Shared Storage
-If running git operations inside `/storage/emulated/0/Projects/...`, configure git's safe directory exception:
+If running git operations inside `/storage/emulated/0/Antigravity/...` or `/storage/emulated/0/Projects/...`, configure git's safe directory exception:
 ```bash
 export GIT_CONFIG_NOSYSTEM=1
 git config --global --add safe.directory "*"

@@ -20,6 +20,7 @@ public final class GatewayDispatcher {
     private final LogRingBuffer logBuffer;
     private final com.agy.log.CommandHistory commandHistory;
     private final ExecHandler execHandler;
+    private final WorkspaceGatewayHandler workspaceHandler;
 
     public GatewayDispatcher(Context context, LogRingBuffer logBuffer) {
         this.context = context != null ? context.getApplicationContext() : null;
@@ -31,6 +32,7 @@ public final class GatewayDispatcher {
         this.logBuffer = logBuffer;
         this.commandHistory = new com.agy.log.CommandHistory();
         this.execHandler = new ExecHandler(context, this.commandHistory, logBuffer);
+        this.workspaceHandler = new WorkspaceGatewayHandler(context);
     }
 
     public JSONObject dispatch(String command, JSONObject payload) {
@@ -100,6 +102,15 @@ public final class GatewayDispatcher {
                     crashResp.put("crash", latest != null ? latest : JSONObject.NULL);
                 } catch (Exception ignored) {}
                 return crashResp;
+            case "workspace_list":
+            case "workspace_quick_create":
+            case "workspace_import":
+            case "workspace_reconnect":
+            case "workspace_archive":
+            case "workspace_restore":
+            case "workspace_remove":
+            case "workspace_verify":
+                return workspaceHandler.handle(command, payload);
             default:
                 JSONObject err = new JSONObject();
                 try {

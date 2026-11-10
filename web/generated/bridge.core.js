@@ -70,7 +70,7 @@ var appConfig = {
   engineReady: false,
   apiPrefix: '',
   csrfToken: '',
-  workspaceRoot: (CONFIG.workspaceRoot || '/storage/emulated/0/'),
+  workspaceRoot: (CONFIG.workspaceRoot || '/storage/emulated/0/Antigravity/'),
   activeCascadeId: null,
   devMode: false
 };

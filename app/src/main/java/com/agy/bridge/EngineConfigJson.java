@@ -51,7 +51,12 @@ public final class EngineConfigJson {
             o.put("home", appContext.getFilesDir().getAbsolutePath());
             o.put("tmpDir", appContext.getCacheDir().getAbsolutePath());
             o.put("appDataDir", runtime.getAppDataDir().getAbsolutePath());
-            o.put("workspaceRoot", "/storage/emulated/0/");
+            com.agy.workspace.storage.WorkspaceStorageManager storageMgr =
+                    new com.agy.workspace.storage.WorkspaceStorageManager(appContext);
+            o.put("workspaceRoot", storageMgr.getRootDir().getAbsolutePath() + "/");
+            o.put("antigravityRoot", storageMgr.getRootDir().getAbsolutePath());
+            o.put("centralizedWorkspaceDir", storageMgr.getWorkspaceDir().getAbsolutePath());
+            o.put("defaultProjectsDir", storageMgr.getProjectsDir().getAbsolutePath());
             o.put("shizukuAvailable", shizuku.isAvailable());
             o.put("rootAvailable", root.isAvailable());
             o.put("rootActive", root.isRootActive());
