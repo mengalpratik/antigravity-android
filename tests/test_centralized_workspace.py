@@ -268,6 +268,10 @@ class TestCentralizedWorkspaceRoot(unittest.TestCase):
         self.assertTrue(os.path.isfile(os.path.join(root, "Logs", ".nomedia")))
         self.assertTrue(os.path.isfile(os.path.join(root, "Cache", ".nomedia")))
 
+        # Legacy directory must NEVER be automatically created during initialization
+        self.assertFalse(os.path.exists(self.mgr.legacy_projects_dir),
+                         "Legacy Projects directory must NEVER be automatically created during initialization")
+
     def test_02_existing_directory_handling_never_overwrites(self):
         """Verifies that re-running initialization never deletes or overwrites existing user files."""
         self.mgr.initialize_hierarchy()

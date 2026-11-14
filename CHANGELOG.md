@@ -68,7 +68,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - **Privileged Command Execution:** Added `root: true` and `auto_elevate: true` options to `SystemGatewayServer`'s `ExecHandler` for `uid=0` execution.
 - **Default Turbo Mode Configuration:** Pre-seeded configuration in `OnboardingSeeder.java` configuring `autoExecutionPolicy: CASCADE_COMMANDS_AUTO_EXECUTION_EAGER`, `fileAccessPolicy: AGENT_SETTING_POLICY_ALLOW`, and unrestricted workspace grants.
 - **Root Status Indicator & Quick Settings:** UI header bar includes a centered `# ROOT` status badge and a direct settings modal shortcut (`⚙`).
-- **Default Project Workspace:** Automatically pre-seeds `/storage/emulated/0/Projects/` as the default workspace directory.
+- **Default Project Workspace:** Automatically pre-seeds `/storage/emulated/0/Antigravity/Projects/` as the default workspace directory.
 
 ### Fixed
 - **Test Suite Port Isolation:** Isolated gateway port in `env/tests/selftest` to ensure `agy-notify` fallback checks succeed cleanly while `CoreServerService` is running.

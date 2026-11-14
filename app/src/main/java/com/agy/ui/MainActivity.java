@@ -400,12 +400,11 @@ public class MainActivity extends Activity
                         com.agy.workspace.storage.WorkspaceRootManager.getInstance(this);
                 rootMgr.initializeHierarchy();
 
-                // Maintain backwards compatibility with legacy Projects directory
+                // Maintain backwards compatibility: detect legacy Projects directory if it already exists, but never auto-create it
                 File storage = android.os.Environment.getExternalStorageDirectory();
-                File projectsDir = new File(storage, "Projects");
-                if (!projectsDir.exists()) {
-                    boolean created = projectsDir.mkdirs();
-                    Log.i(TAG, "Legacy Projects directory created at: " + projectsDir.getAbsolutePath() + " (" + created + ")");
+                File legacyProjectsDir = new File(storage, "Projects");
+                if (legacyProjectsDir.isDirectory()) {
+                    Log.i(TAG, "Legacy Projects directory detected for migration: " + legacyProjectsDir.getAbsolutePath());
                 }
             }
         } catch (Throwable t) {

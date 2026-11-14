@@ -66,7 +66,7 @@ We acknowledge receipt of reports within 48 hours and strive to issue a patched 
 
 | Permission | Scope | Security Mitigation |
 | :--- | :--- | :--- |
-| `MANAGE_EXTERNAL_STORAGE` | Shared storage | Restricts default project creation to `/storage/emulated/0/Projects/`. User files outside project directories are accessed only upon explicit user workspace selection. |
+| `MANAGE_EXTERNAL_STORAGE` | Shared storage | Restricts default project creation to `/storage/emulated/0/Antigravity/Projects/`. User files outside the Antigravity centralized workspace are accessed only upon explicit user workspace selection. |
 | `INTERNET` | Full network | Internal servers strictly bind to `127.0.0.1`. Outbound network requests are limited to verified HTTPS endpoints (Google Gemini APIs and Termux package mirrors). |
 | `FOREGROUND_SERVICE` | Background execution | Running as a foreground service with persistent user notification ensures users are always aware when the core engine is active. |
 | `CAMERA` | Hardware LED | Used exclusively for flashlight (torch) toggle via CameraManager API. Never opens camera preview frames or captures imagery. |

@@ -97,18 +97,27 @@ public final class OnboardingSeeder {
             File outside = new File(projects, "outside-of-project.json");
             if (!outside.isFile() || outside.length() == 0) {
                 try {
+                    com.agy.workspace.storage.WorkspaceRootManager rootMgr =
+                            com.agy.workspace.storage.WorkspaceRootManager.getInstance(appContext);
+                    String projectsUri = "file://" + rootMgr.getProjectsDir().getAbsolutePath();
+                    String defaultWsUri = "file://" + rootMgr.getDefaultWorkspaceDir().getAbsolutePath();
+                    String antigravityUri = "file://" + rootMgr.getRootDir().getAbsolutePath();
+
                     org.json.JSONObject outsideObj = new org.json.JSONObject();
                     outsideObj.put("id", "outside-of-project");
                     outsideObj.put("name", "General Workspace");
 
                     org.json.JSONObject resourcesObj = new org.json.JSONObject();
                     org.json.JSONArray resList = new org.json.JSONArray();
-                    org.json.JSONObject resStorage = new org.json.JSONObject();
-                    resStorage.put("folderUri", "file:///storage/emulated/0");
-                    resList.put(resStorage);
-                    org.json.JSONObject resProj = new org.json.JSONObject();
-                    resProj.put("folderUri", "file:///storage/emulated/0/Projects");
-                    resList.put(resProj);
+                    org.json.JSONObject resProjects = new org.json.JSONObject();
+                    resProjects.put("folderUri", projectsUri);
+                    resList.put(resProjects);
+                    org.json.JSONObject resWs = new org.json.JSONObject();
+                    resWs.put("folderUri", defaultWsUri);
+                    resList.put(resWs);
+                    org.json.JSONObject resAntigravity = new org.json.JSONObject();
+                    resAntigravity.put("folderUri", antigravityUri);
+                    resList.put(resAntigravity);
                     org.json.JSONObject resInternal = new org.json.JSONObject();
                     resInternal.put("folderUri", "file:///data/user/0/com.agy/files");
                     resList.put(resInternal);
@@ -135,6 +144,12 @@ public final class OnboardingSeeder {
                     pAllow.put("write_file(/storage/emulated/0)");
                     pAllow.put("read_file(/storage/emulated/0/**)");
                     pAllow.put("write_file(/storage/emulated/0/**)");
+                    pAllow.put("read_file(/storage/emulated/0/Antigravity)");
+                    pAllow.put("write_file(/storage/emulated/0/Antigravity)");
+                    pAllow.put("read_file(/storage/emulated/0/Antigravity/**)");
+                    pAllow.put("write_file(/storage/emulated/0/Antigravity/**)");
+                    pAllow.put("read_file(" + rootMgr.getRootDir().getAbsolutePath() + "/**)");
+                    pAllow.put("write_file(" + rootMgr.getRootDir().getAbsolutePath() + "/**)");
                     permInner.put("allow", pAllow);
                     permObj.put("permissionGrants", permInner);
                     outsideObj.put("permissionGrants", permObj);
@@ -145,7 +160,7 @@ public final class OnboardingSeeder {
                 }
             }
 
-            // Pre-seed default project pointing to /storage/emulated/0/Projects and /storage/emulated/0
+            // Pre-seed default project pointing to centralized Antigravity workspace
             File defaultProject = new File(projects, "default-projects.json");
             if (!defaultProject.isFile() || defaultProject.length() == 0) {
                 try {
@@ -170,12 +185,15 @@ public final class OnboardingSeeder {
                     org.json.JSONObject resAntigravity = new org.json.JSONObject();
                     resAntigravity.put("folderUri", antigravityUri);
                     resList.put(resAntigravity);
-                    org.json.JSONObject resLegacy = new org.json.JSONObject();
-                    resLegacy.put("folderUri", "file:///storage/emulated/0/Projects");
-                    resList.put(resLegacy);
-                    org.json.JSONObject resStorage = new org.json.JSONObject();
-                    resStorage.put("folderUri", "file:///storage/emulated/0");
-                    resList.put(resStorage);
+
+                    // Only add legacy folder if it actually exists on the filesystem
+                    File legacyProjects = new File(com.agy.workspace.storage.WorkspaceRootManager.LEGACY_EXTERNAL_PROJECTS);
+                    if (legacyProjects.isDirectory()) {
+                        org.json.JSONObject resLegacy = new org.json.JSONObject();
+                        resLegacy.put("folderUri", "file://" + legacyProjects.getAbsolutePath());
+                        resList.put(resLegacy);
+                    }
+
                     resourcesObj.put("resources", resList);
                     defProjObj.put("projectResources", resourcesObj);
 
@@ -220,11 +238,9 @@ public final class OnboardingSeeder {
                         com.agy.workspace.storage.WorkspaceRootManager.getInstance(appContext);
                 rootMgr.initializeHierarchy();
 
-                // Non-destructive migration for existing legacy /storage/emulated/0/Projects
-                File sharedProjects = new File("/storage/emulated/0/Projects");
-                if (!sharedProjects.exists()) {
-                    sharedProjects.mkdirs();
-                } else {
+                // Non-destructive migration for existing legacy /storage/emulated/0/Projects (only if it already exists!)
+                File sharedProjects = new File(com.agy.workspace.storage.WorkspaceRootManager.LEGACY_EXTERNAL_PROJECTS);
+                if (sharedProjects.isDirectory()) {
                     File[] subdirs = sharedProjects.listFiles();
                     if (subdirs != null) {
                         com.agy.workspace.db.ProjectRegistryRepository repo =
