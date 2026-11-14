@@ -57,5 +57,9 @@ src/patches/startup_ready/detect-ui.js
 src/patches/startup_ready/arm.js
 src/patches/startup_ready/public-api.js
 
+bundle iife patches/matrix_core.js
+src/patches/matrix_core.js
+
 bundle iife patches/root_indicator.js
-src/patches/root_indicator.js
+src/patches/matrix_core.js
+

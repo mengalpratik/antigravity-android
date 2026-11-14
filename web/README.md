@@ -54,3 +54,4 @@ web/
    - **Desktop / DeX Mode:** Full multi-pane IDE layout with dockable file tree, split editor tabs, and terminal drawer tailored for Samsung DeX and Android tablets.
 2. **Real-time Agent Telemetry:** Live streaming logs showing agent thought processes, file diff inspections, and terminal command execution in real time.
 3. **Hardened Local Communication:** Disallows external script loads; communicates strictly with loopback endpoints via dynamic authentication tokens.
+4. **Matrix Core Control Hub:** Native settings integration (`patches/matrix_core.js`) providing centralized Root diagnostics, background AI daemon monitoring, package health checks, and a modular registry for user-defined tools and plugins.
