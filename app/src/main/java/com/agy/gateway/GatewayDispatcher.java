@@ -110,6 +110,11 @@ public final class GatewayDispatcher {
             case "workspace_restore":
             case "workspace_remove":
             case "workspace_verify":
+            case "workspace_root_info":
+            case "workspace_set_custom_root":
+            case "workspace_reset_root":
+            case "workspace_detect_legacy":
+            case "workspace_migrate_legacy":
                 return workspaceHandler.handle(command, payload);
             default:
                 JSONObject err = new JSONObject();

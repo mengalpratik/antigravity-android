@@ -90,6 +90,15 @@ class TestContext(unittest.TestCase):
         self.assertEqual(sub1, sub2)
         self.assertEqual(sub2, "/data/user/0/com.agy/files/runtime/bin/test")
 
+    def test_10_antigravity_workspace_paths(self):
+        paths = path_resolver.load_paths()
+        self.assertEqual(paths["antigravity_root"], "/storage/emulated/0/Antigravity")
+        self.assertEqual(paths["default_projects"], "/storage/emulated/0/Antigravity/Projects")
+        self.assertEqual(paths["default_workspace"], "/storage/emulated/0/Antigravity/Workspaces/Default")
+        self.assertEqual(path_resolver.get_antigravity_root(), "/storage/emulated/0/Antigravity")
+        self.assertEqual(path_resolver.get_default_projects_dir(), "/storage/emulated/0/Antigravity/Projects")
+        self.assertEqual(path_resolver.get_default_workspace_dir(), "/storage/emulated/0/Antigravity/Workspaces/Default")
+
 if __name__ == "__main__":
     unittest.main()
 

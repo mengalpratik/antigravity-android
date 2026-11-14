@@ -110,9 +110,10 @@ The native Android host acts as the supervisor, resource manager, and hardware b
     - `clipboard`: Reads or updates the Android system clipboard (`ClipboardHandler.java`).
     - `system_info`: Queries battery level, memory stats, and OS version (`DeviceHandler.java`).
     - `exec`: Dispatches commands with optional privilege elevation (`ExecHandler.java`).
-    - `workspace/*`: Dispatches workspace and project lifecycle actions (`WorkspaceGatewayHandler.java`).
-- **`WorkspaceStorageManager.java` & `ProjectRegistryRepository.java`:**
-  - **`WorkspaceStorageManager`:** Manages the centralized directory hierarchy under `/storage/emulated/0/Antigravity/` (`Workspace/`, `Projects/`, `Templates/`, `Exports/`, `Shared/`) with automatic Scoped Storage fallback.
+    - `workspace/*`: Dispatches workspace and project lifecycle actions, root info, custom root switching, legacy detection, and migrations (`WorkspaceGatewayHandler.java`).
+- **`WorkspaceRootManager.java` & `WorkspaceStorageManager.java`:**
+  - **`WorkspaceRootManager`:** Centralized architecture manager establishing the dedicated workspace root at `/storage/emulated/0/Antigravity/` with an IDE-grade directory hierarchy (`Projects/`, `Workspaces/Default/`, `System/` [config, profiles, models], `Agents/` [prompts, instructions, tools], `Knowledge/` [memory, references, documentation], `Logs/`, `Cache/`, `Backups/`, `Exports/`). Handles dynamic Scoped Storage fallback, custom root selection via SAF with persistent preferences across restarts, idempotent initialization, legacy `/storage/emulated/0/Projects/` detection, and safe migration with rollback recovery.
+  - **`WorkspaceStorageManager`:** Backwards-compatible storage delegate routing all path queries and operations to `WorkspaceRootManager`.
   - **`ProjectRegistryRepository` & `ProjectDbHelper`:** Thread-safe SQLite repository (`antigravity_projects.db`) storing immutable UUID project identities, source/workspace bindings, schema versions (`1.0.0`), and project statuses (`ACTIVE`/`ARCHIVED`).
   - **`WorkspaceDocumentGenerator` & `ProjectYamlParser`:** Generates root markdown documentation (`PROJECT_CONTEXT.md`, `TASKS.md`), subdirectories (`planning/`, `architecture/`, `research/`, `reports/`, `collaboration/`, `sessions/`), human-readable `project.yaml` manifests, and syncs registered projects to `$HOME/.gemini/config/projects/<UUID>.json`.
 - **`AndroidBridge.java`:**

@@ -5,6 +5,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.5.1] - 2026-11-14
+
+### Added
+- **Centralized Workspace Root Manager (`WorkspaceRootManager`):**
+  - Standardized dedicated application workspace root at `/storage/emulated/0/Antigravity/`.
+  - IDE-grade directory hierarchy:
+    - `Projects/`: Primary destination for newly created projects and Git repositories.
+    - `Workspaces/Default/`: Initial workspace location for project planning and intelligence documents.
+    - `System/`: Centralized configurations (`config/`, `profiles/`, `models/`).
+    - `Agents/`: Persona definitions, prompts (`prompts/`), execution rules (`instructions/`), and tools (`tools/`).
+    - `Knowledge/`: Agent long-term memory (`memory/`), offline references (`references/`), and documentation (`documentation/`).
+    - `Logs/` & `Cache/`: Runtime diagnostics and staging caches decoupled from source repositories (`.nomedia` protected).
+    - `Backups/` & `Exports/`: System snapshots, backups, and user report bundles.
+- **Dynamic SAF Custom Directory Selection & Restart Persistence:**
+  - Full support for selecting custom storage volumes / SD cards via Storage Access Framework.
+  - Custom paths persisted in Android `SharedPreferences` across restarts with graceful fallback.
+- **Safe Legacy Projects Migration Engine:**
+  - Automated detection of legacy `/storage/emulated/0/Projects/` folder.
+  - Non-destructive migration preserving `.git` metadata, hidden files, timestamps, and file contents.
+  - Post-migration integrity verification and automatic atomic rollback on failure.
+- **Extended System Gateway REST Endpoints (`127.0.0.1:45160`):**
+  - Added `workspace_root_info`, `workspace_set_custom_root`, `workspace_reset_root`, `workspace_detect_legacy`, and `workspace_migrate_legacy`.
+
+---
+
 ## [2.5.0] - 2026-11-10
 
 ### Added

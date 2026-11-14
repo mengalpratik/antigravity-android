@@ -15,7 +15,7 @@
   - Linux Userspace Prefix (`$PREFIX`): `$HOME/usr` (`/data/user/0/com.agy/files/usr`).
   - Binary Directory: `$PREFIX/bin`.
   - Runtime Internals: `$HOME/runtime/bin`.
-  - External / Shared Storage: `/storage/emulated/0` (Projects reside in `/storage/emulated/0/Projects/`).
+  - External / Shared Storage: `/storage/emulated/0` (Antigravity Workspace Root: `/storage/emulated/0/Antigravity/`, Projects: `/storage/emulated/0/Antigravity/Projects/`, Workspaces: `/storage/emulated/0/Antigravity/Workspaces/Default/`).
   - AI State & Config: `$HOME/.gemini/config/`.
   - Conversation Brain & Artifacts: `$HOME/.gemini/antigravity-app/brain/<conversation-id>/`.
 
@@ -91,7 +91,7 @@ Antigravity features native out-of-the-box support for both superuser Root (`uid
   ```bash
   su -c "id"
   su -c "ls -la /data/data"
-  su -c "pm install -r /storage/emulated/0/Projects/.../app.apk"
+  su -c "pm install -r /storage/emulated/0/Antigravity/Projects/.../app.apk"
   su -c "setprop persist.sys.example 1"
   ```
 

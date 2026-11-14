@@ -5,5 +5,9 @@
   "cache": "/data/user/0/{package_name}/cache",
   "gemini_home": "/data/user/0/{package_name}/files/.gemini",
   "shared_storage": "/storage/emulated/0",
-  "default_projects": "/storage/emulated/0/Projects"
+  "antigravity_root": "/storage/emulated/0/Antigravity",
+  "default_projects": "/storage/emulated/0/Antigravity/Projects",
+  "default_workspaces": "/storage/emulated/0/Antigravity/Workspaces",
+  "default_workspace": "/storage/emulated/0/Antigravity/Workspaces/Default",
+  "legacy_projects": "/storage/emulated/0/Projects"
 }

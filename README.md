@@ -197,7 +197,7 @@ For complete step-by-step instructions, dependency setup, and CI configurations,
 | :--- | :--- |
 | `INTERNET` | Loopback communication with internal core servers (127.0.0.1) and outbound HTTPS to Gemini / Google Cloud APIs. |
 | `ACCESS_NETWORK_STATE` | Monitors active Wi-Fi and mobile connectivity for resilient API polling. |
-| `MANAGE_EXTERNAL_STORAGE` | Full read/write access to project workspaces and code in `/storage/emulated/0/Antigravity/` (`Workspace/`, `Projects/`, `Templates/`, `Exports/`, `Shared/`) on Android 11+. |
+| `MANAGE_EXTERNAL_STORAGE` | Full read/write access to project workspaces and code in `/storage/emulated/0/Antigravity/` (`Projects/`, `Workspaces/Default/`, `System/`, `Agents/`, `Knowledge/`, `Logs/`, `Cache/`, `Backups/`, `Exports/`) on Android 11+. |
 | `READ_EXTERNAL_STORAGE` | File access on Android 7.0 &ndash; 9.0 devices. |
 | `WRITE_EXTERNAL_STORAGE` | Writing generated code and assets on Android 7.0 &ndash; 9.0 devices. |
 | `FOREGROUND_SERVICE` | Runs the core server process continuously in the background without OS freezing. |

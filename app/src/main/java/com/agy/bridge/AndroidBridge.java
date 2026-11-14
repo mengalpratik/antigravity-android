@@ -70,6 +70,42 @@ public final class AndroidBridge {
     }
 
     @JavascriptInterface
+    public String getWorkspaceRootInfo() {
+        MainActivity act = activityRef != null ? activityRef.get() : MainActivity.activeActivity;
+        Context ctx = act != null ? act.getApplicationContext() : null;
+        if (ctx != null) {
+            com.agy.workspace.storage.WorkspaceRootManager rootMgr =
+                    com.agy.workspace.storage.WorkspaceRootManager.getInstance(ctx);
+            return new org.json.JSONObject(rootMgr.getWorkspaceInfoMap()).toString();
+        }
+        return "{}";
+    }
+
+    @JavascriptInterface
+    public boolean setCustomWorkspaceRoot(String path) {
+        MainActivity act = activityRef != null ? activityRef.get() : MainActivity.activeActivity;
+        Context ctx = act != null ? act.getApplicationContext() : null;
+        if (ctx != null && path != null) {
+            com.agy.workspace.storage.WorkspaceRootManager rootMgr =
+                    com.agy.workspace.storage.WorkspaceRootManager.getInstance(ctx);
+            return rootMgr.setCustomRoot(path, null);
+        }
+        return false;
+    }
+
+    @JavascriptInterface
+    public boolean resetWorkspaceRoot() {
+        MainActivity act = activityRef != null ? activityRef.get() : MainActivity.activeActivity;
+        Context ctx = act != null ? act.getApplicationContext() : null;
+        if (ctx != null) {
+            com.agy.workspace.storage.WorkspaceRootManager rootMgr =
+                    com.agy.workspace.storage.WorkspaceRootManager.getInstance(ctx);
+            return rootMgr.resetToDefaultRoot();
+        }
+        return false;
+    }
+
+    @JavascriptInterface
     public void onUiError(String token, final String errorMessage) {
         if (matchesNativeBridgeToken(token)) {
             ui.onUiError(errorMessage);

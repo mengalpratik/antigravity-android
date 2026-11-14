@@ -6,6 +6,7 @@ import android.util.Log;
 import com.agy.workspace.db.ProjectRegistryRepository;
 import com.agy.workspace.generator.WorkspaceDocumentGenerator;
 import com.agy.workspace.model.ProjectRecord;
+import com.agy.workspace.storage.WorkspaceRootManager;
 import com.agy.workspace.storage.WorkspaceStorageManager;
 
 import org.json.JSONArray;
@@ -13,6 +14,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -23,12 +25,14 @@ public final class WorkspaceGatewayHandler {
     private static final String TAG = "WorkspaceGateway";
 
     private final Context context;
+    private final WorkspaceRootManager rootManager;
     private final WorkspaceStorageManager storageManager;
     private final ProjectRegistryRepository repository;
     private final WorkspaceDocumentGenerator documentGenerator;
 
     public WorkspaceGatewayHandler(Context context) {
         this.context = context != null ? context.getApplicationContext() : null;
+        this.rootManager = WorkspaceRootManager.getInstance(context);
         this.storageManager = new WorkspaceStorageManager(context);
         this.repository = new ProjectRegistryRepository(context);
         this.documentGenerator = new WorkspaceDocumentGenerator(context);
@@ -56,6 +60,16 @@ public final class WorkspaceGatewayHandler {
                 return handleRemove(payload);
             case "workspace_verify":
                 return handleVerify();
+            case "workspace_root_info":
+                return handleRootInfo();
+            case "workspace_set_custom_root":
+                return handleSetCustomRoot(payload);
+            case "workspace_reset_root":
+                return handleResetRoot();
+            case "workspace_detect_legacy":
+                return handleDetectLegacy();
+            case "workspace_migrate_legacy":
+                return handleMigrateLegacy(payload);
             default:
                 JSONObject err = new JSONObject();
                 try {
@@ -86,14 +100,218 @@ public final class WorkspaceGatewayHandler {
             resp.put("projects", arr);
 
             JSONObject paths = new JSONObject();
-            paths.put("root", storageManager.getRootDir().getAbsolutePath());
-            paths.put("workspace", storageManager.getWorkspaceDir().getAbsolutePath());
-            paths.put("projects", storageManager.getProjectsDir().getAbsolutePath());
-            paths.put("templates", storageManager.getTemplatesDir().getAbsolutePath());
-            paths.put("exports", storageManager.getExportsDir().getAbsolutePath());
-            paths.put("shared", storageManager.getSharedDir().getAbsolutePath());
+            paths.put("root", rootManager.getRootDir().getAbsolutePath());
+            paths.put("workspace", rootManager.getWorkspacesDir().getAbsolutePath());
+            paths.put("workspaces", rootManager.getWorkspacesDir().getAbsolutePath());
+            paths.put("defaultWorkspace", rootManager.getDefaultWorkspaceDir().getAbsolutePath());
+            paths.put("projects", rootManager.getProjectsDir().getAbsolutePath());
+            paths.put("system", rootManager.getSystemDir().getAbsolutePath());
+            paths.put("agents", rootManager.getAgentsDir().getAbsolutePath());
+            paths.put("knowledge", rootManager.getKnowledgeDir().getAbsolutePath());
+            paths.put("logs", rootManager.getLogsDir().getAbsolutePath());
+            paths.put("cache", rootManager.getCacheDir().getAbsolutePath());
+            paths.put("backups", rootManager.getBackupsDir().getAbsolutePath());
+            paths.put("exports", rootManager.getExportsDir().getAbsolutePath());
+            paths.put("isCustomRoot", rootManager.isCustomRoot());
             resp.put("storagePaths", paths);
 
+        } catch (Throwable t) {
+            try {
+                resp.put("ok", false);
+                resp.put("error", t.getMessage());
+            } catch (Exception ignored) {}
+        }
+        return resp;
+    }
+
+    private JSONObject handleRootInfo() {
+        JSONObject resp = new JSONObject();
+        try {
+            Map<String, Object> info = rootManager.getWorkspaceInfoMap();
+            resp.put("ok", true);
+            resp.put("rootDir", info.get("rootDir"));
+            resp.put("defaultRoot", info.get("defaultRoot"));
+            resp.put("isCustomRoot", info.get("isCustomRoot"));
+            resp.put("customRootPath", info.get("customRootPath"));
+            resp.put("customRootSafUri", info.get("customRootSafUri"));
+            resp.put("legacyDetected", info.get("legacyDetected"));
+            resp.put("legacyProjectsPath", info.get("legacyProjectsPath"));
+
+            @SuppressWarnings("unchecked")
+            Map<String, String> dirs = (Map<String, String>) info.get("directories");
+            if (dirs != null) {
+                JSONObject dirsObj = new JSONObject();
+                for (Map.Entry<String, String> entry : dirs.entrySet()) {
+                    dirsObj.put(entry.getKey(), entry.getValue());
+                }
+                resp.put("directories", dirsObj);
+            }
+        } catch (Throwable t) {
+            try {
+                resp.put("ok", false);
+                resp.put("error", t.getMessage());
+            } catch (Exception ignored) {}
+        }
+        return resp;
+    }
+
+    private JSONObject handleSetCustomRoot(JSONObject payload) {
+        JSONObject resp = new JSONObject();
+        try {
+            String path = payload.optString("path", "").trim();
+            String safUri = payload.optString("safTreeUri", null);
+            if (path.isEmpty()) {
+                resp.put("ok", false);
+                resp.put("error", "Directory path is required");
+                return resp;
+            }
+
+            boolean success = rootManager.setCustomRoot(path, safUri);
+            resp.put("ok", success);
+            if (success) {
+                resp.put("newRoot", rootManager.getRootDir().getAbsolutePath());
+                resp.put("isCustomRoot", rootManager.isCustomRoot());
+            } else {
+                resp.put("error", "Failed to initialize custom directory at: " + path);
+            }
+        } catch (Throwable t) {
+            try {
+                resp.put("ok", false);
+                resp.put("error", t.getMessage());
+            } catch (Exception ignored) {}
+        }
+        return resp;
+    }
+
+    private JSONObject handleResetRoot() {
+        JSONObject resp = new JSONObject();
+        try {
+            boolean success = rootManager.resetToDefaultRoot();
+            resp.put("ok", success);
+            resp.put("rootDir", rootManager.getRootDir().getAbsolutePath());
+            resp.put("isCustomRoot", rootManager.isCustomRoot());
+        } catch (Throwable t) {
+            try {
+                resp.put("ok", false);
+                resp.put("error", t.getMessage());
+            } catch (Exception ignored) {}
+        }
+        return resp;
+    }
+
+    private JSONObject handleDetectLegacy() {
+        JSONObject resp = new JSONObject();
+        try {
+            List<Map<String, Object>> legacyList = rootManager.detectLegacyProjects();
+            JSONArray arr = new JSONArray();
+            for (Map<String, Object> m : legacyList) {
+                JSONObject item = new JSONObject();
+                item.put("name", m.get("name"));
+                item.put("path", m.get("path"));
+                item.put("isGitRepo", m.get("isGitRepo"));
+                item.put("lastModified", m.get("lastModified"));
+                item.put("fileCount", m.get("fileCount"));
+                arr.put(item);
+            }
+            resp.put("ok", true);
+            resp.put("legacyProjectsPath", WorkspaceRootManager.LEGACY_EXTERNAL_PROJECTS);
+            resp.put("foundProjects", arr);
+            resp.put("count", arr.length());
+        } catch (Throwable t) {
+            try {
+                resp.put("ok", false);
+                resp.put("error", t.getMessage());
+            } catch (Exception ignored) {}
+        }
+        return resp;
+    }
+
+    private JSONObject handleMigrateLegacy(JSONObject payload) {
+        JSONObject resp = new JSONObject();
+        try {
+            String projectName = payload.optString("projectName", "").trim();
+            boolean preserveLegacy = payload.optBoolean("preserveLegacy", true);
+
+            if (!projectName.isEmpty()) {
+                // Migrate single project
+                WorkspaceRootManager.MigrationResult res = rootManager.migrateLegacyProject(projectName, preserveLegacy);
+                resp.put("ok", res.success);
+                resp.put("projectName", res.projectName);
+                resp.put("sourcePath", res.sourcePath);
+                resp.put("targetPath", res.targetPath);
+                resp.put("filesCopied", res.filesCopied);
+                resp.put("rolledBack", res.rolledBack);
+                if (res.error != null) {
+                    resp.put("error", res.error);
+                }
+
+                if (res.success) {
+                    // Register migrated project
+                    File target = new File(res.targetPath);
+                    String slug = generateSlug(projectName);
+                    File wsDir = storageManager.getProjectWorkspaceDir(slug);
+                    wsDir.mkdirs();
+
+                    ProjectRecord p = new ProjectRecord();
+                    p.setId(UUID.randomUUID().toString());
+                    p.setName(projectName);
+                    p.setSlug(slug);
+                    p.setDescription("Migrated from legacy Projects directory");
+                    p.setStatus(ProjectRecord.STATUS_ACTIVE);
+                    p.setSourceType(ProjectRecord.SOURCE_TYPE_DEFAULT);
+                    p.setSourcePath(target.getAbsolutePath());
+                    p.setSourceUri("file://" + target.getAbsolutePath());
+                    p.setWorkspacePath(wsDir.getAbsolutePath());
+                    File gitDir = new File(target, ".git");
+                    if (gitDir.isDirectory()) p.setVcsType("git");
+                    documentGenerator.initializeWorkspace(p);
+                    repository.insertProject(p);
+                    resp.put("registeredProject", p.toJson());
+                }
+            } else {
+                // Migrate all legacy projects
+                List<Map<String, Object>> legacyList = rootManager.detectLegacyProjects();
+                JSONArray results = new JSONArray();
+                int successCount = 0;
+                for (Map<String, Object> m : legacyList) {
+                    String name = (String) m.get("name");
+                    WorkspaceRootManager.MigrationResult res = rootManager.migrateLegacyProject(name, preserveLegacy);
+                    JSONObject rObj = new JSONObject();
+                    rObj.put("projectName", name);
+                    rObj.put("success", res.success);
+                    rObj.put("filesCopied", res.filesCopied);
+                    rObj.put("rolledBack", res.rolledBack);
+                    if (res.error != null) rObj.put("error", res.error);
+
+                    if (res.success) {
+                        successCount++;
+                        File target = new File(res.targetPath);
+                        String slug = generateSlug(name);
+                        File wsDir = storageManager.getProjectWorkspaceDir(slug);
+                        wsDir.mkdirs();
+
+                        ProjectRecord p = new ProjectRecord();
+                        p.setId(UUID.randomUUID().toString());
+                        p.setName(name);
+                        p.setSlug(slug);
+                        p.setDescription("Migrated from legacy Projects directory");
+                        p.setStatus(ProjectRecord.STATUS_ACTIVE);
+                        p.setSourceType(ProjectRecord.SOURCE_TYPE_DEFAULT);
+                        p.setSourcePath(target.getAbsolutePath());
+                        p.setSourceUri("file://" + target.getAbsolutePath());
+                        p.setWorkspacePath(wsDir.getAbsolutePath());
+                        File gitDir = new File(target, ".git");
+                        if (gitDir.isDirectory()) p.setVcsType("git");
+                        documentGenerator.initializeWorkspace(p);
+                        repository.insertProject(p);
+                    }
+                    results.put(rObj);
+                }
+                resp.put("ok", true);
+                resp.put("migratedTotal", results.length());
+                resp.put("migratedSuccess", successCount);
+                resp.put("results", results);
+            }
         } catch (Throwable t) {
             try {
                 resp.put("ok", false);
@@ -119,16 +337,16 @@ public final class WorkspaceGatewayHandler {
                 slug = slug + "-" + (System.currentTimeMillis() % 1000);
             }
 
-            storageManager.initializeHierarchy();
+            rootManager.initializeHierarchy();
 
-            File sourceDir = storageManager.getProjectSourceDir(slug);
+            File sourceDir = rootManager.resolveProjectDir(slug);
             if (!sourceDir.isDirectory() && !sourceDir.mkdirs()) {
                 resp.put("ok", false);
                 resp.put("error", "Could not create source directory: " + sourceDir.getAbsolutePath());
                 return resp;
             }
 
-            File wsDir = storageManager.getProjectWorkspaceDir(slug);
+            File wsDir = rootManager.resolveWorkspaceDir(slug);
             if (!wsDir.isDirectory() && !wsDir.mkdirs()) {
                 resp.put("ok", false);
                 resp.put("error", "Could not create workspace directory: " + wsDir.getAbsolutePath());
@@ -200,9 +418,9 @@ public final class WorkspaceGatewayHandler {
                 slug = slug + "-" + (System.currentTimeMillis() % 1000);
             }
 
-            storageManager.initializeHierarchy();
+            rootManager.initializeHierarchy();
 
-            File wsDir = storageManager.getProjectWorkspaceDir(slug);
+            File wsDir = rootManager.resolveWorkspaceDir(slug);
             if (!wsDir.isDirectory() && !wsDir.mkdirs()) {
                 resp.put("ok", false);
                 resp.put("error", "Could not create workspace directory: " + wsDir.getAbsolutePath());

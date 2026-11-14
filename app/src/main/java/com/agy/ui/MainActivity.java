@@ -396,9 +396,9 @@ public class MainActivity extends Activity
 
             if (hasPermission) {
                 // Initialize centralized Antigravity workspace architecture
-                com.agy.workspace.storage.WorkspaceStorageManager storageMgr =
-                        new com.agy.workspace.storage.WorkspaceStorageManager(this);
-                storageMgr.initializeHierarchy();
+                com.agy.workspace.storage.WorkspaceRootManager rootMgr =
+                        com.agy.workspace.storage.WorkspaceRootManager.getInstance(this);
+                rootMgr.initializeHierarchy();
 
                 // Maintain backwards compatibility with legacy Projects directory
                 File storage = android.os.Environment.getExternalStorageDirectory();

@@ -50,3 +50,15 @@ def resolve_subpath(key: str, rel_path: str, custom_spec: Optional[str] = None, 
         raise KeyError(f"Unknown path key: '{key}'. Available: {list(paths.keys())}")
     return os.path.join(paths[key], rel_path.lstrip("/"))
 
+def get_antigravity_root(custom_spec: Optional[str] = None, app_id: Optional[str] = None) -> str:
+    paths = load_paths(custom_spec=custom_spec, app_id=app_id)
+    return paths.get("antigravity_root", "/storage/emulated/0/Antigravity")
+
+def get_default_projects_dir(custom_spec: Optional[str] = None, app_id: Optional[str] = None) -> str:
+    paths = load_paths(custom_spec=custom_spec, app_id=app_id)
+    return paths.get("default_projects", "/storage/emulated/0/Antigravity/Projects")
+
+def get_default_workspace_dir(custom_spec: Optional[str] = None, app_id: Optional[str] = None) -> str:
+    paths = load_paths(custom_spec=custom_spec, app_id=app_id)
+    return paths.get("default_workspace", "/storage/emulated/0/Antigravity/Workspaces/Default")
+

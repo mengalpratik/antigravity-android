@@ -6,6 +6,7 @@ import com.agy.runtime.RuntimeConfig;
 import com.agy.runtime.RuntimeManager;
 import com.agy.shell.RootBridge;
 import com.agy.shell.ShizukuBridge;
+import com.agy.workspace.storage.WorkspaceRootManager;
 
 import org.json.JSONObject;
 
@@ -51,12 +52,24 @@ public final class EngineConfigJson {
             o.put("home", appContext.getFilesDir().getAbsolutePath());
             o.put("tmpDir", appContext.getCacheDir().getAbsolutePath());
             o.put("appDataDir", runtime.getAppDataDir().getAbsolutePath());
-            com.agy.workspace.storage.WorkspaceStorageManager storageMgr =
-                    new com.agy.workspace.storage.WorkspaceStorageManager(appContext);
-            o.put("workspaceRoot", storageMgr.getRootDir().getAbsolutePath() + "/");
-            o.put("antigravityRoot", storageMgr.getRootDir().getAbsolutePath());
-            o.put("centralizedWorkspaceDir", storageMgr.getWorkspaceDir().getAbsolutePath());
-            o.put("defaultProjectsDir", storageMgr.getProjectsDir().getAbsolutePath());
+
+            // Centralized Workspace Root Manager
+            WorkspaceRootManager rootMgr = WorkspaceRootManager.getInstance(appContext);
+            o.put("workspaceRoot", rootMgr.getRootDir().getAbsolutePath() + "/");
+            o.put("antigravityRoot", rootMgr.getRootDir().getAbsolutePath());
+            o.put("defaultProjectsDir", rootMgr.getProjectsDir().getAbsolutePath());
+            o.put("centralizedWorkspaceDir", rootMgr.getWorkspacesDir().getAbsolutePath());
+            o.put("workspacesDir", rootMgr.getWorkspacesDir().getAbsolutePath());
+            o.put("defaultWorkspaceDir", rootMgr.getDefaultWorkspaceDir().getAbsolutePath());
+            o.put("systemDir", rootMgr.getSystemDir().getAbsolutePath());
+            o.put("agentsDir", rootMgr.getAgentsDir().getAbsolutePath());
+            o.put("knowledgeDir", rootMgr.getKnowledgeDir().getAbsolutePath());
+            o.put("logsDir", rootMgr.getLogsDir().getAbsolutePath());
+            o.put("cacheDir", rootMgr.getCacheDir().getAbsolutePath());
+            o.put("backupsDir", rootMgr.getBackupsDir().getAbsolutePath());
+            o.put("exportsDir", rootMgr.getExportsDir().getAbsolutePath());
+            o.put("isCustomWorkspaceRoot", rootMgr.isCustomRoot());
+
             o.put("shizukuAvailable", shizuku.isAvailable());
             o.put("rootAvailable", root.isAvailable());
             o.put("rootActive", root.isRootActive());
