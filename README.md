@@ -262,9 +262,24 @@ If you enjoy using **Antigravity for Android** and want to support ongoing devel
 
 ---
 
-## 13. License Information
+## 13. Heritage & Solo Engineering Stewardship
+
+**Antigravity for Android** was originally founded and architected up to v2.4.1 by [werdio325-png](https://github.com/werdio325-png/antigravity-android). Following the upstream maintainer's suspension of the project in November 2026, this repository was forked and is now independently engineered and maintained by **Pratik Mengal** under the Apache License 2.0.
+
+Operating as a **solo lead developer**, Pratik undertook the stewardship of the codebase to prevent project abandonment and spearheaded major architectural evolutions, including:
+- **v2.5.0 Centralized Workspace Architecture:** Designed and implemented multi-tier project isolation (`Antigravity/Projects/`, `Workspace/`, `Templates/`) with a native SQLite registry and REST Gateway integration.
+- **Native Root Runtime Engine:** Engineered resilient `SuLocator` probing (KernelSU, Magisk, APatch) and dynamic Bionic `LD_LIBRARY_PATH` userspace linking.
+- **Full Global Localization:** Completely sanitized and translated legacy Russian documentation, internal specs, and Android runtime toast notifications into English.
+- **Autonomous CI & Build Pipelines:** Stabilized Android SDK build toolchains and multi-module release automation.
+
+We extend our deep gratitude to `werdio325-png` for the pioneering foundation, while continuing active solo development to make mobile-native AI engineering accessible worldwide.
+
+---
+
+## 14. License Information
 
 This project is licensed under the [Apache License 2.0](LICENSE).  
 Copyright &copy; 2026 Pratik Mengal and project contributors.
 
 *(Notice: Portions of the bundled runtime assets, including third-party libraries and upstream tools, are subject to their respective open-source licenses as documented in the repository.)*
+
