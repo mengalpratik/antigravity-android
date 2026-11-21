@@ -33,6 +33,8 @@ public final class CoreServerService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        // Promote the service immediately, before runtime and gateway initialization.
+        ForegroundNotification.start(this);
         runtime = new RuntimeManager(this);
         logBuffer = new com.agy.log.LogRingBuffer();
         gatewayServer = new com.agy.gateway.SystemGatewayServer(this, logBuffer, com.agy.BuildConfig.GATEWAY_PORT);
@@ -48,7 +50,6 @@ public final class CoreServerService extends Service {
         CoreRuntimeState.lastError = null;
         CoreRuntimeState.serverUrl = null;
 
-        ForegroundNotification.start(this);
         wakeLock = new WakeLockHolder();
         wakeLock.acquire(this);
 
@@ -158,6 +159,8 @@ public final class CoreServerService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // Reaffirm foreground state on repeated starts and null-intent START_STICKY restarts.
+        ForegroundNotification.start(this);
         return START_STICKY;
     }
 
